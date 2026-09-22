@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "sfv-validation-b1-v1",
+  "seed": 47,
+  "playlist": [
+    "v1",
+    "v2",
+    "v3"
+  ],
+  "abr": {
+    "name": "current",
+    "config": {
+      "activeBufferTargetSegments": 2,
+      "max_preload_segments": 4,
+      "preload_segments_per_video": 2
+    }
+  },
+  "swipeTimesS": [
+    3,
+    7
+  ],
+  "sessionDurationS": 11,
+  "capacityTrace": [
+    [
+      0,
+      8
+    ],
+    [
+      4,
+      3
+    ],
+    [
+      8,
+      10
+    ]
+  ],
+  "latencyMs": 40,
+  "maxConcurrentRequests": 2,
+  "cacheMaxBytes": null,
+  "comparison": {
+    "userEventToleranceS": 0.5,
+    "networkEventToleranceS": 0.9,
+    "requestEventToleranceS": 1.5,
+    "startupToleranceS": 2
+  }
+}

@@ -1,0 +1,290 @@
+diff --git a/index.d.ts b/index.d.ts
+index 3580b6e..d2eed2e 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -1774,7 +1774,8 @@ export class MediaPlayerSettingClass {
+         scheduling?: {
+             defaultTimeout?: number,
+             lowLatencyTimeout?: number,
+-            scheduleWhilePaused?: boolean
++            scheduleWhilePaused?: boolean,
++            externallyControlled?: boolean
+         },
+         text?: {
+             defaultEnabled?: boolean,
+diff --git a/src/core/Settings.js b/src/core/Settings.js
+index cd1e248..369a5f9 100644
+--- a/src/core/Settings.js
++++ b/src/core/Settings.js
+@@ -167,7 +167,8 @@ import SwitchRequest from '../streaming/rules/SwitchRequest.js';
+  *            scheduling: {
+  *                defaultTimeout: 500,
+  *                lowLatencyTimeout: 0,
+- *                scheduleWhilePaused: true
++ *                scheduleWhilePaused: true,
++ *                externallyControlled: false
+  *            },
+  *            text: {
+  *                defaultEnabled: true,
+@@ -637,6 +638,8 @@ import SwitchRequest from '../streaming/rules/SwitchRequest.js';
+  * Default timeout between two consecutive low-latency segment scheduling attempts
+  * @property {boolean} [scheduleWhilePaused=true]
+  * Set to true if you would like dash.js to keep downloading fragments in the background when the video element is paused.
++ * @property {boolean} [externallyControlled=false]
++ * Disable autonomous init/media scheduling while preserving the normal playback and buffering pipeline.
+  */
+ 
+ /**
+@@ -1334,7 +1337,8 @@ function Settings() {
+             scheduling: {
+                 defaultTimeout: 500,
+                 lowLatencyTimeout: 0,
+-                scheduleWhilePaused: true
++                scheduleWhilePaused: true,
++                externallyControlled: false
+             },
+             text: {
+                 defaultEnabled: true,
+diff --git a/src/dash/DashHandler.js b/src/dash/DashHandler.js
+index 117a9fd..115d030 100644
+--- a/src/dash/DashHandler.js
++++ b/src/dash/DashHandler.js
+@@ -208,6 +208,18 @@ function DashHandler(config) {
+         return request;
+     }
+ 
++    /**
++     * Resolve an arbitrary segment without modifying DashHandler.lastSegment.
++     * This is used for externally scheduled SFV downloads.
++     */
++    function getSegmentRequestForTimeIdempotent(mediaInfo, representation, time) {
++        if (!representation || !representation.segmentInfoType) {
++            return null;
++        }
++        const segment = segmentsController.getSegmentByTime(representation, time);
++        return segment ? _getRequestForSegment(mediaInfo, segment) : null;
++    }
++
+     function _getRequestForSegment(mediaInfo, segment) {
+         if (segment === null || segment === undefined) {
+             return null;
+@@ -463,6 +475,7 @@ function DashHandler(config) {
+         getNextSegmentRequest,
+         getNextSegmentRequestIdempotent,
+         getSegmentRequestForTime,
++        getSegmentRequestForTimeIdempotent,
+         getStreamId,
+         getStreamInfo,
+         getType,
+diff --git a/src/streaming/StreamProcessor.js b/src/streaming/StreamProcessor.js
+index c364b9f..6e3e226 100644
+--- a/src/streaming/StreamProcessor.js
++++ b/src/streaming/StreamProcessor.js
+@@ -1194,6 +1194,91 @@ function StreamProcessor(config) {
+         bufferController.dischargePreBuffer();
+     }
+ 
++    /** Stateless fragment resolution + verified buffer injection in opt-in SFV mode. */
++    function getSFVPort() {
++        if (!settings.get().streaming.scheduling.externallyControlled || !dashHandler || !currentMediaInfo) {
++            return null;
++        }
++        function representation(id) {
++            const rep = representationController.getRepresentationById(id);
++            if (!rep) {
++                throw new Error('Unknown SFV representation: ' + id);
++            }
++            return rep;
++        }
++        const pendingInjections = new Set();
++        return {
++            cancelPending() {
++                for (const cancel of [...pendingInjections]) {
++                    cancel(new Error('SFV slot was reset'));
++                }
++            },
++            finalize(lastLogicalSegmentIndex) {
++                if (!Number.isInteger(lastLogicalSegmentIndex) || lastLogicalSegmentIndex < 0) {
++                    throw new Error('Invalid SFV last segment index');
++                }
++                bufferController.segmentRequestingCompleted(lastLogicalSegmentIndex + 1);
++            },
++            resolveInit(id) {
++                return dashHandler.getInitRequest(currentMediaInfo, representation(id));
++            },
++            resolveMedia(id, time) {
++                return dashHandler.getSegmentRequestForTimeIdempotent(currentMediaInfo, representation(id), time);
++            },
++            inject(request, bytes) {
++                if (!request || !(bytes instanceof ArrayBuffer)) {
++                    return Promise.reject(new Error('Invalid SFV cached fragment'));
++                }
++                return new Promise((resolve, reject) => {
++                    let finished = false;
++                    const cleanup = () => {
++                        clearTimeout(timeout);
++                        pendingInjections.delete(done);
++                        eventBus.off(Events.BYTES_APPENDED_END_FRAGMENT, onAppended, instance);
++                        eventBus.off(Events.SOURCE_BUFFER_ERROR, onError, instance);
++                    };
++                    const done = (error) => {
++                        if (finished) {
++                            return;
++                        }
++                        finished = true;
++                        cleanup();
++                        if (error) {
++                            reject(error);
++                        } else {
++                            resolve();
++                        }
++                    };
++                    const onAppended = (e) => {
++                        if (e.streamId !== streamInfo.id || e.mediaType !== type ||
++                            e.segmentType !== request.type || e.representationId !== request.representation.id) {
++                            return;
++                        }
++                        if (request.isInitializationRequest() || e.index === request.index) {
++                            done();
++                        }
++                    };
++                    const onError = (e) => {
++                        if (e.streamId === streamInfo.id && e.mediaType === type) {
++                            done(new Error('dash.js SourceBuffer error'));
++                        }
++                    };
++                    const timeout = setTimeout(() => done(new Error('Timed out waiting for dash.js buffer append')), 15000);
++                    pendingInjections.add(done);
++                    eventBus.on(Events.BYTES_APPENDED_END_FRAGMENT, onAppended, instance);
++                    eventBus.on(Events.SOURCE_BUFFER_ERROR, onError, instance);
++                    try {
++                        if (!fragmentModel.executeCachedRequest(request, bytes)) {
++                            done(new Error('dash.js rejected cached fragment'));
++                        }
++                    } catch (error) {
++                        done(error);
++                    }
++                });
++            }
++        };
++    }
++
+     function getFragmentModel() {
+         return fragmentModel;
+     }
+@@ -1627,6 +1712,7 @@ function StreamProcessor(config) {
+         getBufferController,
+         getBufferLevel,
+         getFragmentModel,
++        getSFVPort,
+         getLastSegment,
+         getMediaInfo,
+         getMediaSource,
+diff --git a/src/streaming/controllers/ScheduleController.js b/src/streaming/controllers/ScheduleController.js
+index c99d974..2ca1ac9 100644
+--- a/src/streaming/controllers/ScheduleController.js
++++ b/src/streaming/controllers/ScheduleController.js
+@@ -100,6 +100,10 @@ function ScheduleController(config) {
+     }
+ 
+     function startScheduleTimer(value) {
++        if (settings.get().streaming.scheduling.externallyControlled) {
++            clearScheduleTimer();
++            return;
++        }
+         //return if both buffering and playback have ended
+         if (bufferController.getIsBufferingCompleted()) {
+             return;
+diff --git a/src/streaming/mediaplayer/CoreApi.js b/src/streaming/mediaplayer/CoreApi.js
+index a56a132..8b70ada 100644
+--- a/src/streaming/mediaplayer/CoreApi.js
++++ b/src/streaming/mediaplayer/CoreApi.js
+@@ -29,6 +29,7 @@
+  *  POSSIBILITY OF SUCH DAMAGE.
+  */
+ import EventBus from '../../core/EventBus.js';
++import DashParser from '../../dash/parser/DashParser.js';
+ import FactoryMaker from '../../core/FactoryMaker.js';
+ import InitCache from '../utils/InitCache.js';
+ import TimeUtils from '../utils/TimeUtils.js';
+@@ -146,6 +147,24 @@ function CoreApi() {
+      * @memberof module:MediaPlayer
+      * @instance
+      */
++    /** Return only the opt-in SFV mechanism, never a general internal controller. */
++    function getSFVPort(mediaType = 'video') {
++        if (!state.settings.get().streaming.scheduling.externallyControlled) {
++            return null;
++        }
++        const stream = state.streamController && state.streamController.getActiveStream();
++        const processor = stream && stream.getStreamProcessors().find(p => p.getType() === mediaType);
++        return processor ? processor.getSFVPort() : null;
++    }
++
++    /** Parse an explicitly downloaded MPD with the native dash.js parser. */
++    function parseSFVManifest(xml) {
++        if (!state.settings.get().streaming.scheduling.externallyControlled) {
++            throw new Error('SFV mode disabled');
++        }
++        return DashParser(context).create({debug}).parse(xml);
++    }
++
+     function getDashMetrics() {
+         return state.dashMetrics;
+     }
+@@ -225,6 +244,8 @@ function CoreApi() {
+         convertToTimeCode,
+         formatUTC,
+         getDashMetrics,
++        getSFVPort,
++        parseSFVManifest,
+         getDebug,
+         getInitCache,
+         getOfflineController,
+diff --git a/src/streaming/models/FragmentModel.js b/src/streaming/models/FragmentModel.js
+index a37591a..07812de 100644
+--- a/src/streaming/models/FragmentModel.js
++++ b/src/streaming/models/FragmentModel.js
+@@ -210,6 +210,34 @@ function FragmentModel(config) {
+         }
+     }
+ 
++    /** Accept cached SFV bytes via the normal fragment-loading completion event. */
++    function executeCachedRequest(request, response) {
++        if (!request || !response || !request.representation) {
++            return false;
++        }
++        // SFV cached-fragment deduplication must distinguish init from media.
++        // The generic dash.js loaded/pending check also compares representation ID
++        // across fragment types and can mistake a media segment for its init.
++        const sameCachedResource = previous =>
++            previous.type === request.type &&
++            previous.mediaType === request.mediaType &&
++            previous.representation?.id === request.representation.id &&
++            (request.isInitializationRequest() ||
++                (previous.index === request.index && previous.startTime === request.startTime));
++        if (executedRequests.some(sameCachedResource) || loadingRequests.some(sameCachedResource)) {
++            return false;
++        }
++        executedRequests.push(request);
++        addSchedulingInfoMetrics(request, FRAGMENT_MODEL_EXECUTED);
++        eventBus.trigger(events.FRAGMENT_LOADING_COMPLETED, {
++            request,
++            response,
++            error: null,
++            sender: instance
++        }, { streamId: streamInfo.id, mediaType: type });
++        return true;
++    }
++
+     function loadCurrentFragment(request) {
+         eventBus.trigger(events.FRAGMENT_LOADING_STARTED,
+             { request: request },
+@@ -345,6 +373,7 @@ function FragmentModel(config) {
+ 
+     instance = {
+         abortRequests,
++        executeCachedRequest,
+         executeRequest,
+         getRequests,
+         getStreamId,

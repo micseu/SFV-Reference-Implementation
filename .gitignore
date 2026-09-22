@@ -1,0 +1,40 @@
+node_modules/
+out/
+coverage/
+*.log
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+
+# Local editor and build artifacts
+.vscode/
+.idea/
+*.swp
+*.tmp
+*.bak
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Additional developer tooling
+Thumbs.db
+.coverage
+.coverage.*
+.mypy_cache/
+*.egg-info/
+.poetry/
+*.orig
+*.rej
+
+# Full experiment/session exports belong in ignored out/ or an external data store
+browser-session-*.json
+*-session-*.json
+
+# Derived scenario configurations and per-run reports
+scenarios/validation/generated/
+*.zip

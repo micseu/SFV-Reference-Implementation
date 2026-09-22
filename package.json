@@ -1,0 +1,42 @@
+{
+  "name": "sfv-reference-implementation",
+  "version": "0.7.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "node scripts/lint.mjs",
+    "simulate:b1": "node scripts/run-simulation.mjs current",
+    "simulate:b2": "node scripts/run-simulation.mjs prefetch",
+    "simulate:multi-ue": "node scripts/run-multi-ue.mjs",
+    "verify": "npm run lint && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
+    "validate:fixtures": "node scripts/validate-fixtures.mjs",
+    "validate:patch": "node scripts/validate-patch.mjs",
+    "serve:browser": "node scripts/serve-browser.mjs",
+    "check:dashjs": "node scripts/prepare-dashjs.mjs ../dash.js --check",
+    "verify:dashjs-integration": "node scripts/prepare-dashjs.mjs ../dash.js --verify-installed",
+    "simulate:experiment": "node scripts/run-experiment.mjs examples/shared-network-experiment.json out/shared-experiment",
+    "simulate:generators": "node scripts/run-experiment.mjs examples/generators-experiment.json out/generators-experiment",
+    "simulate:cache-fault": "node scripts/run-experiment.mjs examples/cache-fault-experiment.json out/cache-fault-experiment",
+    "validate:scenarios": "npm run validate:scenarios:b1 && npm run validate:scenarios:b2",
+    "validate:scenarios:b2": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b2-v1.json out/validation-b2",
+    "validate:scenarios:b1": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b1-v1.json out/validation-b1",
+    "validate:scenarios:stall:b1": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b1-stalling-v1.json out/validation-b1-stalling",
+    "validate:scenarios:stall:b2": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b2-stalling-v1.json out/validation-b2-stalling",
+    "validate:scenarios:stall": "npm run validate:scenarios:stall:b1 && npm run validate:scenarios:stall:b2",
+    "validate:baseline:b1": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b1-v1.json out/validation-b1",
+    "validate:baseline:b2": "node scripts/validation/run-scenarios.mjs scenarios/validation/scenario-b2-v1.json out/validation-b2",
+    "validate:abr:diagnostics": "node scripts/validation/run-abr-diagnostic.mjs",
+    "validate:browser-replay": "node scripts/validation/browser-replay.mjs",
+    "validate:browser-replay:acceptance": "node scripts/validation/browser-replay-acceptance.mjs",
+    "validate:supplementary:prepare": "node scripts/validation/prepare-supplementary.mjs",
+    "validate:supplementary": "node scripts/validation/supplementary-experiments.mjs",
+    "simulate:causal": "node scripts/run-experiment.mjs examples/causal-simple-experiment.json out/causal-simple-review"
+  },
+  "license": "BSD-3-Clause",
+  "main": "./src/index.js",
+  "exports": "./src/index.js"
+}

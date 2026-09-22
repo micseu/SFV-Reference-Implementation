@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "browser-b2-example",
+  "seed": 42,
+  "abr": {
+    "name": "prefetch",
+    "config": {
+      "max_preload_segments": 4,
+      "preload_segments_per_video": 2,
+      "activeBufferTargetSegments": 2
+    }
+  },
+  "playlist": ["v1", "v2", "v3"],
+  "userModel": {
+    "type": "sequence",
+    "swipeTimesS": [3, 6],
+    "sessionDurationS": 10
+  },
+  "network": {
+    "capacityTrace": [[0, 8], [4, 2], [8, 5]],
+    "latencyMs": 40
+  },
+  "cache": {"maxBytes": null},
+  "scheduling": {"maxConcurrentRequests": 4, "swipeCancellation": true},
+  "requestRetry": {"maxRetries": 0, "delayMs": 250}
+}

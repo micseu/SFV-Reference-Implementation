@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "sfv-validation-b1-abr-diagnostics-v1",
+  "seed": 47,
+  "playlist": [
+    "v1",
+    "v2",
+    "v3"
+  ],
+  "abr": {
+    "name": "current",
+    "config": {
+      "activeBufferTargetSegments": 2,
+      "max_preload_segments": 4,
+      "preload_segments_per_video": 2
+    }
+  },
+  "swipeTimesS": [
+    7,
+    15
+  ],
+  "sessionDurationS": 22,
+  "capacityTrace": [
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      0.01
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      8,
+      0.01
+    ],
+    [
+      14,
+      8
+    ]
+  ],
+  "latencyMs": 40,
+  "maxConcurrentRequests": 2,
+  "cacheMaxBytes": null,
+  "comparison": {
+    "userEventToleranceS": 0.5,
+    "networkEventToleranceS": 0.9,
+    "requestEventToleranceS": 1.5,
+    "startupToleranceS": 2,
+    "stallStartToleranceS": 2.5,
+    "stallDurationToleranceS": 2.5
+  },
+  "stallValidation": {
+    "minRecoveredStalls": 2,
+    "expectedStallVideoIds": [
+      "v1",
+      "v2"
+    ],
+    "minStallDurationS": 0.5
+  },
+  "diagnostics": {
+    "abrDecisions": true
+  }
+}

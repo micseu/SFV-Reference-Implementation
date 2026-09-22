@@ -1,0 +1,8 @@
+{
+  "mode": "causal-simple",
+  "slotPreparationS": 0.025,
+  "appendProcessingS": 0.005,
+  "startupDelayS": 0.015,
+  "recoveryDelayS": 0.015,
+  "observationIntervalS": 0.25
+}

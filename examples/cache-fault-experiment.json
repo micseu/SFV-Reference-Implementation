@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "bounded-cache-transient-failure",
+  "content": {"datasetPath": "../fixtures/content/content.json", "videos": ["v1", "v2", "v3"], "playlist": ["v1", "v2", "v3"]},
+  "network": {
+    "capacityTrace": [[0, 8], [4, 3], [8, 8]],
+    "latencyMs": 40,
+    "cancelTailBytes": 64,
+    "cancelTailMs": 10,
+    "faults": [{"videoId":"v1","resourceType":"media","segmentIndex":0,"attempt":0,"reason":"INJECTED_FAILURE"}]
+  },
+  "sessions": [
+    {"abr":{"name":"current","config":{"activeBufferTargetSegments":2}},
+     "config":{"sessionId":"b1-bounded-cache","ueId":0,"seed":15,"maxTimeS":15,
+       "sessionStartTimeS":0,"sessionDurationS":12,"swipeTimesS":[4,8],
+       "cache":{"maxBytes":262144},
+       "requestRetry":{"maxRetries":1,"delayS":0.25},
+       "scheduling":{"maxConcurrentRequests":2,"swipeCancellation":true}}},
+    {"abr":{"name":"prefetch","config":{"max_preload_segments":3,"preload_segments_per_video":1}},
+     "config":{"sessionId":"b2-bounded-cache","ueId":1,"seed":16,"maxTimeS":15,
+       "sessionStartTimeS":1,"sessionDurationS":12,"swipeTimesS":[4,8],
+       "cache":{"maxBytes":262144},
+       "requestRetry":{"maxRetries":1,"delayS":0.25},
+       "scheduling":{"maxConcurrentRequests":2,"swipeCancellation":true}}}
+  ]
+}

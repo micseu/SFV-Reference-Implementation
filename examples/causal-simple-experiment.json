@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "causal-simple-review-b1",
+  "content": {
+    "datasetPath": "../fixtures/content/content.json",
+    "playlist": [
+      "v1",
+      "v2",
+      "v3"
+    ]
+  },
+  "network": {
+    "capacityMbps": 8,
+    "latencyMs": 40
+  },
+  "sessions": [
+    {
+      "abr": {
+        "name": "current",
+        "config": {
+          "activeBufferTargetSegments": 2
+        }
+      },
+      "config": {
+        "seed": 47,
+        "maxTimeS": 19,
+        "sessionDurationS": 19,
+        "swipeTimesS": [
+          6,
+          12
+        ],
+        "scheduling": {
+          "maxConcurrentRequests": 2
+        },
+        "playbackTiming": {
+          "mode": "causal-simple",
+          "slotPreparationS": 0.025,
+          "appendProcessingS": 0.005,
+          "startupDelayS": 0.015,
+          "recoveryDelayS": 0.015,
+          "observationIntervalS": 0.25
+        }
+      }
+    }
+  ]
+}

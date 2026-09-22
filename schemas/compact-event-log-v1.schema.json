@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sfv:compact-event-log:v1",
+  "title": "SFV Compact Event Log v1",
+  "type": "object",
+  "required": ["schemaVersion", "clockOrigin", "sessionId", "ueId", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "clockOrigin": {"enum": ["session_start", "experiment_start"]},
+    "sessionId": {"type": ["string", "null"]},
+    "ueId": {"type": ["string", "integer", "null"]},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestampS", "source", "eventType", "details"],
+        "properties": {
+          "timestampS": {"type": ["number", "null"]},
+          "source": {"enum": ["User", "Network", "Player", "Cache", "ABR", "System"]},
+          "eventType": {"type": "string", "minLength": 1},
+          "details": {"type": "string"},
+          "eventId": {"type": "integer", "minimum": 0},
+          "videoId": {"type": "string"},
+          "requestId": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

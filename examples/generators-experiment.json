@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "generators-example",
+  "content": {
+    "datasetPath": "../fixtures/content/content.json",
+    "videos": ["v1", "v2", "v3"],
+    "playlist": ["v1", "v2", "v3"]
+  },
+  "network": {
+    "capacityGenerator": {
+      "type": "seeded",
+      "seed": 51,
+      "capacityChoicesMbps": [2, 5, 8],
+      "holdDurationRangeS": [1, 3],
+      "changes": 8
+    },
+    "latencyMs": 40
+  },
+  "timingDefaults": {
+    "maxTimeS": 25,
+    "sessionStartWindowS": [0, 4],
+    "sessionDurationRangeS": [8, 16]
+  },
+  "sessions": [
+    {
+      "abr": {"name": "current", "config": {"activeBufferTargetSegments": 2}},
+      "config": {
+        "sessionId": "ue-0", "ueId": 0, "seed": 17,
+        "scheduling": {"maxConcurrentRequests": 2},
+        "userModel": {"type": "sequence", "swipeTimesS": [3, 7]}
+      }
+    },
+    {
+      "abr": {"name": "prefetch", "config": {"activeBufferTargetSegments": 2, "max_preload_segments": 4, "preload_segments_per_video": 2}},
+      "config": {
+        "sessionId": "ue-1", "ueId": 1, "seed": 21,
+        "scheduling": {"maxConcurrentRequests": 3},
+        "userModel": {"type": "seeded", "seed": 99, "watchDurationRangeS": [2, 5]}
+      }
+    }
+  ]
+}
