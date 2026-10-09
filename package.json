@@ -15,7 +15,7 @@
     "verify": "npm run lint && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
     "validate:fixtures": "node scripts/validate-fixtures.mjs",
     "validate:patch": "node scripts/validate-patch.mjs",
-    "serve:browser": "node scripts/serve-browser.mjs",
+    "serve:browser": "node web/server.mjs",
     "check:dashjs": "node scripts/prepare-dashjs.mjs ../dash.js --check",
     "verify:dashjs-integration": "node scripts/prepare-dashjs.mjs ../dash.js --verify-installed",
     "simulate:experiment": "node scripts/run-experiment.mjs examples/shared-network-experiment.json out/shared-experiment",
@@ -38,5 +38,8 @@
   },
   "license": "BSD-3-Clause",
   "main": "./src/index.js",
-  "exports": "./src/index.js"
+  "exports": "./src/index.js",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }

@@ -6,8 +6,8 @@ const root = new URL('../',import.meta.url);
 const page = name => fs.readFileSync(new URL(name,root),'utf8');
 
 test('browser UI is English and initial playback does not require Play click',()=>{
-  const browser = page('browser/index.html');
-  const main = page('browser/main.js');
+  const browser = page('web/public/index.html');
+  const main = page('web/public/main.js');
   assert.match(browser,/<html lang="en">/);
   assert.match(browser,/>Start Session</);
   assert.match(browser,/>Next Video</);

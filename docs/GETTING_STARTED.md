@@ -7,7 +7,7 @@ supported browser and obtain the exact upstream dash.js source separately.
 The simulator and its tests do **not** require dash.js to be built.
 
 ```sh
-# From sfv-reference-implementation/
+# From SFV-Reference-Implementation/
 npm ci
 npm run verify
 npm run simulate:causal
@@ -21,13 +21,13 @@ All results go to ignored `out/`.
 
 ## Install the only supported dash.js patch (browser)
 
-From the **parent** directory of `sfv-reference-implementation/`:
+From the **parent** directory of `SFV-Reference-Implementation/`:
 
 ```sh
 git clone https://github.com/Dash-Industry-Forum/dash.js.git
 cd dash.js
 git checkout --detach b1bde9f45f35e4565eaeb1ea4dfd6a5f8fd44bdb
-cd ../sfv-reference-implementation
+cd ../SFV-Reference-Implementation
 node scripts/prepare-dashjs.mjs ../dash.js --check
 node scripts/prepare-dashjs.mjs ../dash.js --apply
 node scripts/prepare-dashjs.mjs ../dash.js --verify-installed
@@ -35,11 +35,11 @@ cd ../dash.js
 npm ci
 npm run ci:verify
 npm run webpack-build-modern
-cd ../sfv-reference-implementation
+cd ../SFV-Reference-Implementation
 npm run serve:browser
 ```
 
-Open http://127.0.0.1:8080/; paste `browser/experiment-example.json` into
+Open http://127.0.0.1:8080/; paste `web/public/experiment-example.json` into
 **Enter Configuration**, start an experiment and export **Full Session JSON**.
 Save exported browser runs outside the Git working tree (or under ignored
 `out/`). `npm run verify` cannot replace real browser/MSE tests. Only use

@@ -79,8 +79,8 @@ test('all six UI event sources can be independently filtered while raw compact l
 });
 
 test('browser UI exposes individual source toggles; full JSON export remains unfiltered',()=>{
-  const html=fs.readFileSync(new URL('../browser/index.html',import.meta.url),'utf8');
-  const main=fs.readFileSync(new URL('../browser/main.js',import.meta.url),'utf8');
+  const html=fs.readFileSync(new URL('../web/public/index.html',import.meta.url),'utf8');
+  const main=fs.readFileSync(new URL('../web/public/main.js',import.meta.url),'utf8');
   for(const source of COMPACT_EVENT_SOURCES) assert.match(html,new RegExp(`type="checkbox" value="${source}" checked`));
   assert.match(main,/filterCompactEventLog\(fullLog,enabled\)/);
   assert.match(main,/result\.compactEventLog=compactLog\(result\)/);

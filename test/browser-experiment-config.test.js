@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {validateBrowserExperimentConfig,parseBrowserExperimentConfig,
   resolveBrowserNetworkProfile} from '../src/browser/SFVBrowserExperimentConfig.js';
 
-const example=JSON.parse(fs.readFileSync(fileURLToPath(new URL('../browser/experiment-example.json',import.meta.url)),'utf8'));
+const example=JSON.parse(fs.readFileSync(fileURLToPath(new URL('../web/public/experiment-example.json',import.meta.url)),'utf8'));
 
 test('versioned browser JSON example resolves to a single-UE browser run',()=>{
   const run=parseBrowserExperimentConfig(JSON.stringify(example));
@@ -60,8 +60,8 @@ test('resolves seeded capacity reproducibly but retains original seed in exporte
 });
 
 test('browser page provides an editable JSON experiment launcher without removing manual session controls',()=>{
-  const html=fs.readFileSync(fileURLToPath(new URL('../browser/index.html',import.meta.url)),'utf8');
-  const main=fs.readFileSync(fileURLToPath(new URL('../browser/main.js',import.meta.url)),'utf8');
+  const html=fs.readFileSync(fileURLToPath(new URL('../web/public/index.html',import.meta.url)),'utf8');
+  const main=fs.readFileSync(fileURLToPath(new URL('../web/public/main.js',import.meta.url)),'utf8');
   assert.match(html,/id="experimentconfig"/);
   assert.match(html,/id="start-experiment"/);
   assert.match(html,/id="example-config"/);

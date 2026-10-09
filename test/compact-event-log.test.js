@@ -83,8 +83,8 @@ test('simulation produces the same compact schema and exports both text and JSON
 });
 
 test('browser demo supplies live event panel, copy and full JSON export with full export support',()=>{
-  const html=fs.readFileSync(path.join(root,'browser/index.html'),'utf8');
-  const main=fs.readFileSync(path.join(root,'browser/main.js'),'utf8');
+  const html=fs.readFileSync(path.join(root,'web/public/index.html'),'utf8');
+  const main=fs.readFileSync(path.join(root,'web/public/main.js'),'utf8');
   assert.match(html,/id="event-log"/);
   assert.match(html,/id="copy-event-log"/);
   assert.match(html,/id="export"[^>]*>Download Full Session JSON/);

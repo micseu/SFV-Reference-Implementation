@@ -225,7 +225,7 @@ $('start-experiment').onclick=()=>{
 };
 $('example-config').onclick=async()=>{
   try{
-    const response=await fetch('/browser/experiment-example.json');
+    const response=await fetch('/experiment-example.json');
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     const source=await response.text();
     parseBrowserExperimentConfig(source);

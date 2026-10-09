@@ -74,8 +74,8 @@ test('server restart resets previous clock fit and missing synchronization never
 });
 
 test('welcome, JSON-only setup and sticky player + event-log workspace retain control IDs',()=>{
-  const html=fs.readFileSync(path.join(root,'browser/index.html'),'utf8');
-  const script=fs.readFileSync(path.join(root,'browser/main.js'),'utf8');
+  const html=fs.readFileSync(path.join(root,'web/public/index.html'),'utf8');
+  const script=fs.readFileSync(path.join(root,'web/public/main.js'),'utf8');
   assert.match(html,/id="entry-screen"/);
   assert.match(html,/id="json-screen"[^>]*hidden/);
   assert.match(html,/id="workspace-screen"[^>]*hidden/);
@@ -97,7 +97,7 @@ test('actual browser server reports same clock instance across clock and network
   const bundle=path.join(tmp,'dist/modern/umd/dash.all.min.js');
   fs.mkdirSync(path.dirname(bundle),{recursive:true});
   fs.writeFileSync(bundle,'window.dashjs={MediaPlayer:()=>({create:()=>({updateSettings(){},parseSFVManifest(){}})})};');
-  const child=spawn(process.execPath,[path.join(root,'scripts/serve-browser.mjs')],{
+  const child=spawn(process.execPath,[path.join(root,'web/server.mjs')],{
     cwd:root,env:{...process.env,SFV_DASHJS_ROOT:tmp,PORT:'0'},stdio:['ignore','pipe','pipe']});
   let stderr='';child.stderr.setEncoding('utf8');child.stderr.on('data',s=>{stderr+=s;});
   let stdout='';child.stdout.setEncoding('utf8');
