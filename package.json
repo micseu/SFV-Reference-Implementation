@@ -15,7 +15,7 @@
     "simulate:b1": "node scripts/run-simulation.mjs current",
     "simulate:b2": "node scripts/run-simulation.mjs prefetch",
     "simulate:multi-ue": "node scripts/run-multi-ue.mjs",
-    "verify": "npm run lint && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
+    "verify": "npm run lint && npm run format:check && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
     "validate:fixtures": "node scripts/validate-fixtures.mjs",
     "validate:patch": "node scripts/validate-patch.mjs",
     "serve:browser": "node web/server.mjs",
