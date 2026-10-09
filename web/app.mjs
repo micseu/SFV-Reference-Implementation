@@ -11,12 +11,28 @@ const root = path.resolve(webRoot, '..');
 const mediaRoot = path.join(root, 'fixtures/dash');
 const mime = { '.mpd': 'application/dash+xml', '.m4s': 'video/iso.segment' };
 
+/** Normalizes a mount path such as "sfv/" or "/sfv" to "/sfv"; "" and "/" mean the site root. */
+export function normalizeBasePath(value = '') {
+  const trimmed = String(value)
+    .trim()
+    .replace(/^\/+|\/+$/g, '');
+  if (!trimmed) return '';
+  const basePath = `/${trimmed}`;
+  if (!/^(\/[A-Za-z0-9._~-]+)+$/.test(basePath))
+    throw new TypeError(
+      `Invalid base path ${JSON.stringify(value)}: use path segments of letters, digits, ".", "_", "~" or "-"`
+    );
+  return basePath;
+}
+
 /** Serves the single-UE browser console, the shared src/ modules, DASH fixtures and the control endpoints. */
 export function createApp({
   dashRoot = process.env.SFV_DASHJS_ROOT ?? path.join(root, '../dash.js'),
+  basePath = '',
   emulator = new SFVMediaNetworkEmulator(),
   serverInstanceId = randomUUID()
 } = {}) {
+  basePath = normalizeBasePath(basePath);
   const dashBundle = path.join(path.resolve(dashRoot), 'dist/modern/umd/dash.all.min.js');
   if (!fs.existsSync(dashBundle))
     throw new Error(
@@ -37,8 +53,9 @@ export function createApp({
   };
   const app = express();
   app.disable('x-powered-by');
+  const router = express.Router();
 
-  app.get('/__sfv/clock', noStore, (req, res) =>
+  router.get('/__sfv/clock', noStore, (req, res) =>
     res.json({
       schemaVersion: 1,
       clock: 'node_performance_seconds',
@@ -48,7 +65,7 @@ export function createApp({
     })
   );
 
-  app
+  router
     .route('/__sfv/emulation')
     .all(noStore)
     .get((req, res) => res.json({ ...emulator.snapshot(), serverInstanceId }))
@@ -65,7 +82,7 @@ export function createApp({
     })
     .all((req, res) => res.status(405).json({}));
 
-  app.get('/vendor/dash.all.min.js', (req, res) =>
+  router.get('/vendor/dash.all.min.js', (req, res) =>
     res.sendFile(dashBundle, {
       etag: false,
       lastModified: false,
@@ -74,7 +91,7 @@ export function createApp({
   );
 
   // Emulated media path: only fixture media goes through the shared-capacity emulator.
-  app.use(
+  router.use(
     '/media',
     (req, res, next) => {
       if (!emulator.profile || !['GET', 'HEAD'].includes(req.method)) return next();
@@ -95,8 +112,17 @@ export function createApp({
     express.static(mediaRoot, staticOptions)
   );
 
-  app.use('/src', express.static(path.join(root, 'src'), staticOptions));
-  app.use(express.static(path.join(webRoot, 'public'), staticOptions));
+  router.use('/src', express.static(path.join(root, 'src'), staticOptions));
+  router.use(express.static(path.join(webRoot, 'public'), staticOptions));
+
+  if (basePath) {
+    // The page uses relative URLs, so "/sfv" must become "/sfv/" before index.html is served.
+    app.get(basePath, (req, res, next) => {
+      if (req.path !== basePath) return next();
+      res.redirect(308, `${basePath}/${new URL(req.originalUrl, 'http://localhost').search}`);
+    });
+  }
+  app.use(basePath || '/', router);
   app.use((req, res) => res.status(404).type('text').send('Not found'));
   app.use((error, req, res, next) => {
     // body-parser errors (bad JSON → 400, oversized → 413)

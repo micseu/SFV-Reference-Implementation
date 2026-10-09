@@ -69,3 +69,29 @@ test('new session clears only SFV CacheStorage media entries; unrelated origin r
   assert.equal((await clearSFVMediaCache(args)).deletedEntries, 0);
   assert.equal((await clearSFVMediaCache({ cacheStorage: null })).mode, 'http-no-store');
 });
+
+test('cache isolation honours a media path prefix under an app subpath', async () => {
+  const urls = [
+    'https://example.test/sfv/media/v1/init-0.m4s',
+    'https://example.test/media/v1/init-0.m4s',
+    'https://example.test/sfv/other/something'
+  ];
+  const entries = urls.map(url => ({ url }));
+  const cacheStorage = {
+    keys: async () => ['app'],
+    open: async () => ({
+      keys: async () => entries.slice(),
+      delete: async item => entries.splice(entries.indexOf(item), 1).length === 1
+    })
+  };
+  const cleaned = await clearSFVMediaCache({
+    cacheStorage,
+    origin: 'https://example.test',
+    mediaPathPrefix: '/sfv/media/'
+  });
+  assert.equal(cleaned.deletedEntries, 1);
+  assert.deepEqual(
+    entries.map(item => item.url),
+    urls.slice(1)
+  );
+});

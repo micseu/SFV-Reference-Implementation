@@ -1,23 +1,25 @@
-import { SFVBrowserController } from '/src/dashjs/SFVBrowserController.js';
-import { SFVCurrentVideoRule } from '/src/rules/SFVCurrentVideoRule.js';
-import { SFVMultiVideoPrefetchRule } from '/src/rules/SFVMultiVideoPrefetchRule.js';
-import { SFVBrowserUserAutomation } from '/src/browser/SFVBrowserUserAutomation.js';
+import { SFVBrowserController } from './src/dashjs/SFVBrowserController.js';
+import { SFVCurrentVideoRule } from './src/rules/SFVCurrentVideoRule.js';
+import { SFVMultiVideoPrefetchRule } from './src/rules/SFVMultiVideoPrefetchRule.js';
+import { SFVBrowserUserAutomation } from './src/browser/SFVBrowserUserAutomation.js';
 import {
   validateBrowserExperimentConfig,
   parseBrowserExperimentConfig,
   resolveBrowserNetworkProfile
-} from '/src/browser/SFVBrowserExperimentConfig.js';
+} from './src/browser/SFVBrowserExperimentConfig.js';
 import {
   buildCompactEventLog,
   formatCompactEventLog,
   filterCompactEventLog
-} from '/src/output/SFVCompactEventLog.js';
-import { SFVBrowserServerClock } from '/src/browser/SFVBrowserServerClock.js';
-import { clearSFVMediaCache } from '/src/browser/SFVBrowserCacheIsolation.js';
+} from './src/output/SFVCompactEventLog.js';
+import { SFVBrowserServerClock } from './src/browser/SFVBrowserServerClock.js';
+import { clearSFVMediaCache } from './src/browser/SFVBrowserCacheIsolation.js';
 
 // Page lifetime identity distinguishes consecutive sessions in the same loaded UI.
 const pageInstanceId = crypto.randomUUID();
 const $ = id => document.getElementById(id);
+// Server URLs are relative to the page, so the app also works under a subpath (SFV_BASE_PATH).
+const appUrl = relative => new URL(relative, document.baseURI).href;
 let controller = null,
   automation = null,
   lastResult = null,
@@ -27,7 +29,7 @@ let pendingSessionStartTimer = null;
 let eventLogTimer = null,
   lastNetworkSnapshot = null,
   lastCompactText = '';
-let clock = new SFVBrowserServerClock(),
+let clock = new SFVBrowserServerClock({ path: appUrl('__sfv/clock') }),
   lastClockProbeS = -Infinity,
   clockProbeInFlight = null;
 let launchInProgress = false,
@@ -134,7 +136,7 @@ async function refreshEventLog() {
     $('clock-status').textContent = `Clock synchronization unavailable: ${error.message}`;
   }
   try {
-    const response = await fetch('/__sfv/emulation', { cache: 'no-store' });
+    const response = await fetch(appUrl('__sfv/emulation'), { cache: 'no-store' });
     if (response.ok) {
       const snapshot = await response.json();
       if (active !== controller) return;
@@ -184,7 +186,7 @@ function readManualConfiguration() {
   });
 }
 async function configureNetwork(profile) {
-  const response = await fetch('/__sfv/emulation', {
+  const response = await fetch(appUrl('__sfv/emulation'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(profile ?? { enabled: false })
@@ -228,7 +230,7 @@ async function startExperiment(config, source) {
     stopEventLogRefresh();
     lastNetworkSnapshot = null;
     lastCompactText = '';
-    clock = new SFVBrowserServerClock();
+    clock = new SFVBrowserServerClock({ path: appUrl('__sfv/clock') });
     clockProbeInFlight = null;
     lastClockProbeS = -Infinity;
     updateClockStatus();
@@ -257,14 +259,17 @@ async function startExperiment(config, source) {
     const playlist = config.playlist.map(item => ({
       videoId: item.videoId,
       manifestUrl: new URL(
-        item.manifestUrl ?? `/media/${item.videoId}/manifest-video-only.mpd`,
+        item.manifestUrl ?? `media/${item.videoId}/manifest-video-only.mpd`,
         location.href
       ).href
     }));
     // Stop-and-drain above ensures the old in-memory store and MSE slot are released.
     // CacheStorage entries are removed only for SFV media; the transport bypasses HTTP cache.
     try {
-      lastCacheIsolation = await clearSFVMediaCache({ playlist });
+      lastCacheIsolation = await clearSFVMediaCache({
+        playlist,
+        mediaPathPrefix: new URL(appUrl('media/')).pathname
+      });
     } catch (error) {
       lastCacheIsolation = {
         mode: 'http-no-store',
@@ -407,7 +412,7 @@ $('start-experiment').onclick = () => {
 };
 $('example-config').onclick = async () => {
   try {
-    const response = await fetch('/experiment-example.json');
+    const response = await fetch(appUrl('experiment-example.json'));
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const source = await response.text();
     parseBrowserExperimentConfig(source);
@@ -483,7 +488,7 @@ $('export').onclick = async () => {
     pageInstanceId
   };
   try {
-    const response = await fetch('/__sfv/emulation', { cache: 'no-store' });
+    const response = await fetch(appUrl('__sfv/emulation'), { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     result.browserExperiment.serverNetwork = await response.json();
     lastNetworkSnapshot = result.browserExperiment.serverNetwork.profile

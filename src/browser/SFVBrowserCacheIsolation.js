@@ -6,7 +6,8 @@
 export async function clearSFVMediaCache({
   cacheStorage = globalThis.caches,
   origin = globalThis.location?.origin,
-  playlist = []
+  playlist = [],
+  mediaPathPrefix = '/media/'
 } = {}) {
   const manifestUrls = new Set(
     playlist
@@ -22,7 +23,7 @@ export async function clearSFVMediaCache({
     const cache = await cacheStorage.open(name);
     for (const request of await cache.keys()) {
       const url = new URL(request.url);
-      const sfvMedia = url.origin === origin && url.pathname.startsWith('/media/');
+      const sfvMedia = url.origin === origin && url.pathname.startsWith(mediaPathPrefix);
       if (!sfvMedia && !manifestUrls.has(url.href)) continue;
       try {
         if (await cache.delete(request)) deletedEntries++;
