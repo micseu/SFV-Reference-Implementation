@@ -6,7 +6,7 @@ export const SFV_EXPERIMENT_SCHEMA_VERSION = 1;
 function assertObject(value,name){if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError(`${name} must be an object`);}
 function assertStringArray(value,name){if(value!==undefined&&(!Array.isArray(value)||value.some(v=>typeof v!=='string'||!v)))throw new TypeError(`${name} must be an array of non-empty strings`);}
 
-export function validateExperimentSpec(spec,{sourcePath=null}={}){
+export function validateExperimentSpec(spec){
   assertObject(spec,'experiment');
   if(spec.schemaVersion!==SFV_EXPERIMENT_SCHEMA_VERSION)throw new TypeError(`Unsupported experiment schemaVersion ${spec.schemaVersion}; expected ${SFV_EXPERIMENT_SCHEMA_VERSION}`);
   if(typeof spec.experimentId!=='string'||!spec.experimentId)throw new TypeError('experimentId is required');

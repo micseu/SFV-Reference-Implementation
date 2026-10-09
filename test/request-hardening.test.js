@@ -88,7 +88,7 @@ test('zero-capacity HTTP trace pauses a transfer until the capacity step changes
 
 test('session-end drain settles active and queued browser requests before taking the result',async()=>{
   let rejectFirst;let starts=0;
-  const transport={onEvent:null,start({requestId}){starts++;
+  const transport={onEvent:null,start(){starts++;
     return new Promise((_resolve,reject)=>{rejectFirst=reject;});},
     abort(){rejectFirst(Object.assign(new Error('aborted'),{name:'AbortError'}));},reset(){}};
   const manager=managerFor('http://example.invalid/test.m4s',{transport,maxConcurrentRequests:1});

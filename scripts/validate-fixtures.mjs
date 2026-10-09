@@ -22,8 +22,8 @@ for (const video of dataset.videos) {
     errors.push(`${video.videoId}: missing video-only MPD`);
   } else {
     const videoMpd = fs.readFileSync(videoOnly, 'utf8');
-    if (/contentType=[\"']audio[\"']/.test(videoMpd) ||
-        !/contentType=[\"']video[\"']/.test(videoMpd) ||
+    if (/contentType=["']audio["']/.test(videoMpd) ||
+        !/contentType=["']video["']/.test(videoMpd) ||
         (videoMpd.match(/<Representation /g) ?? []).length !== (video.representations.video ?? []).length) {
       errors.push(`${video.videoId}: invalid video-only MPD adaptation sets`);
     }

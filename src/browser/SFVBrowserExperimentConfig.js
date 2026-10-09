@@ -12,7 +12,6 @@ function finiteNumber(value,name,{min=0,integer=false}={}){
   }
   return value;
 }
-function optionalNumber(value,name,options){return value===undefined?undefined:finiteNumber(value,name,options);}
 function validatedCapacityTrace(trace){
   if(!Array.isArray(trace)||!trace.length||trace.some((entry,i)=>!Array.isArray(entry)||entry.length!==2||
     !Number.isFinite(entry[0])||entry[0]<0||!Number.isFinite(entry[1])||entry[1]<0||

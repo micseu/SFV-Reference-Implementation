@@ -8,7 +8,10 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "lint": "node scripts/lint.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "simulate:b1": "node scripts/run-simulation.mjs current",
     "simulate:b2": "node scripts/run-simulation.mjs prefetch",
     "simulate:multi-ue": "node scripts/run-multi-ue.mjs",
@@ -41,5 +44,12 @@
   "exports": "./src/index.js",
   "dependencies": {
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9"
   }
 }

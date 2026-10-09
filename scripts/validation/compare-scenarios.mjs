@@ -4,8 +4,6 @@ import {fileURLToPath} from 'node:url';
 
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
 const load=filename=>JSON.parse(fs.readFileSync(filename,'utf8'));
-const norm=e=>({time:finite(e.timestampS)?e.timestampS:e.time,eventType:e.eventType,
-  videoId:e.videoId??null,capacityMbps:e.capacityMbps??null});
 const key=r=>[r.resource?.videoId,r.resource?.resourceType,r.resource?.mediaType??'',r.resource?.representationId??'',r.resource?.segmentIndex??''].join('|');
 const completed=result=>(result.requests??[]).filter(r=>r.state==='COMPLETED'&&finite(r.startTime)&&finite(r.endTime));
 const byKey=items=>{const map=new Map();for(const item of items){const k=key(item);if(!map.has(k))map.set(k,[]);map.get(k).push(item);}return map;};

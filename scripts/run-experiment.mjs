@@ -44,11 +44,11 @@ function resolveTraceFiles(spec,baseDirectory){
 /** Versioned standalone experiment entry point for command-line and library callers. */
 export function runExperiment(inputSpec, outputDirectory, {sourcePath=null}={}) {
   if(!outputDirectory)throw new TypeError('output directory is required');
-  const validated=validateExperimentSpec(inputSpec,{sourcePath});
+  const validated=validateExperimentSpec(inputSpec);
   const baseDirectory=sourcePath?path.dirname(path.resolve(sourcePath)):process.cwd();
   const spec=resolveTraceFiles(validated,baseDirectory);
   const content=loadAndResolveDataset(spec,{defaultDatasetPath,baseDirectory});
-  const sessions=spec.sessions.map((session,index)=>{
+  const sessions=spec.sessions.map((session)=>{
     const Rule=session.abr.name==='current'?SFVCurrentVideoRule:SFVMultiVideoPrefetchRule;
     const config={...(session.config??{}),rule:structuredClone(session.abr.config??session.config?.rule??{})};
     return {ruleFactory:()=>new Rule(),config};
@@ -99,7 +99,7 @@ export function runExperiment(inputSpec, outputDirectory, {sourcePath=null}={}) 
 
   const summary=results.map((result,index)=>{
     const prefix=`ue-${index}`;
-    const {log,jsonName,textName}=writeCompactEventArtifacts({result,outputDirectory,prefix,
+    const {log}=writeCompactEventArtifacts({result,outputDirectory,prefix,
       networkEvents:networkCapacityEvents(runner.lastNetworkReport,result.timeS)});
     result.compactEventLog=log;
     writeJson(`${prefix}-session.json`,result.sessionRecord);

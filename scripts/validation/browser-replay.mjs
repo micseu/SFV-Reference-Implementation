@@ -10,7 +10,6 @@ import {compareDecisionInputs,replaySessionDecisions} from './abr-diagnostics.mj
 import {fixtureAlignedDataset} from './prepare-scenarios.mjs';
 import {extractBrowserPlaybackTiming} from '../../src/simulation/SFVBrowserPlaybackTiming.js';
 
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
 const fail=message=>{throw new TypeError(`Browser replay input: ${message}`);};
 

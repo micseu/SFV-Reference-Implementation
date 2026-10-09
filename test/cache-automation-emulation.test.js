@@ -11,7 +11,6 @@ import {SFVMediaNetworkEmulator} from '../scripts/network/SFVMediaNetworkEmulato
 import {SFVSimulationController} from '../src/simulation/SFVSimulationController.js';
 import {SFVSimulationRunner} from '../src/simulation/SFVSimulationRunner.js';
 import {SFVCurrentVideoRule} from '../src/rules/SFVCurrentVideoRule.js';
-import {SFVMultiVideoPrefetchRule} from '../src/rules/SFVMultiVideoPrefetchRule.js';
 import {calculateDataWastage} from '../src/output/SFVDataWastageCalculator.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const dataset=JSON.parse(fs.readFileSync(path.join(root,'fixtures/content/content.json'),'utf8'));
