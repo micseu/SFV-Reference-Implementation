@@ -1,15 +1,16 @@
-import fs from 'node:fs';
 import path from 'node:path';
-import { performance } from 'node:perf_hooks';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { SFVMediaNetworkEmulator } from '../scripts/network/SFVMediaNetworkEmulator.mjs';
+import { createControlController } from './controllers/control.mjs';
+import { createMediaController } from './controllers/media.mjs';
+import { createStaticController } from './controllers/static.mjs';
+import { createVendorController } from './controllers/vendor.mjs';
+import { errorHandler, notFound } from './http.mjs';
 
 const webRoot = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(webRoot, '..');
-const mediaRoot = path.join(root, 'fixtures/dash');
-const mime = { '.mpd': 'application/dash+xml', '.m4s': 'video/iso.segment' };
 
 /** Normalizes a mount path such as "sfv/" or "/sfv" to "/sfv"; "" and "/" mean the site root. */
 export function normalizeBasePath(value = '') {
@@ -33,87 +34,19 @@ export function createApp({
   serverInstanceId = randomUUID()
 } = {}) {
   basePath = normalizeBasePath(basePath);
-  const dashBundle = path.join(path.resolve(dashRoot), 'dist/modern/umd/dash.all.min.js');
-  if (!fs.existsSync(dashBundle))
-    throw new Error(
-      `Patched dash.js browser bundle missing: ${dashBundle}; run npm run webpack-build-modern in your patched dash.js checkout`
-    );
-  const staticOptions = {
-    etag: false,
-    lastModified: false,
-    setHeaders(res, file) {
-      res.setHeader('access-control-allow-origin', '*');
-      res.setHeader('cache-control', 'no-store');
-      if (mime[path.extname(file)]) res.setHeader('content-type', mime[path.extname(file)]);
-    }
-  };
-  const noStore = (req, res, next) => {
-    res.set('cache-control', 'no-store');
-    next();
-  };
   const app = express();
   app.disable('x-powered-by');
+
+  // Route table, relative to the base path. Order matters: the page files come last.
+  const controllers = [
+    ['/__sfv', createControlController({ emulator, serverInstanceId })],
+    ['/vendor', createVendorController({ dashRoot })],
+    ['/media', createMediaController({ emulator, mediaRoot: path.join(root, 'fixtures/dash') })],
+    ['/src', createStaticController(path.join(root, 'src'))],
+    ['/', createStaticController(path.join(webRoot, 'public'))]
+  ];
   const router = express.Router();
-
-  router.get('/__sfv/clock', noStore, (req, res) =>
-    res.json({
-      schemaVersion: 1,
-      clock: 'node_performance_seconds',
-      serverInstanceId,
-      serverTimeS: performance.now() / 1000,
-      serverUnixTimeMs: Date.now()
-    })
-  );
-
-  router
-    .route('/__sfv/emulation')
-    .all(noStore)
-    .get((req, res) => res.json({ ...emulator.snapshot(), serverInstanceId }))
-    .post(express.json({ limit: '64kb', strict: false, type: () => true }), (req, res) => {
-      try {
-        const profile = req.body;
-        if (profile === undefined) throw new Error('Missing emulation profile body');
-        if (profile === null || profile.enabled === false) emulator.disable();
-        else emulator.configure(profile);
-        res.json({ ...emulator.snapshot(), serverInstanceId });
-      } catch (error) {
-        res.status(/active/i.test(error.message) ? 409 : 400).json({ error: error.message });
-      }
-    })
-    .all((req, res) => res.status(405).json({}));
-
-  router.get('/vendor/dash.all.min.js', (req, res) =>
-    res.sendFile(dashBundle, {
-      etag: false,
-      lastModified: false,
-      headers: { 'cache-control': 'no-store', 'access-control-allow-origin': '*' }
-    })
-  );
-
-  // Emulated media path: only fixture media goes through the shared-capacity emulator.
-  router.use(
-    '/media',
-    (req, res, next) => {
-      if (!emulator.profile || !['GET', 'HEAD'].includes(req.method)) return next();
-      const filePath = path.resolve(mediaRoot, `.${decodeURIComponent(req.path)}`);
-      if (
-        !filePath.startsWith(`${mediaRoot}${path.sep}`) ||
-        !fs.existsSync(filePath) ||
-        !fs.statSync(filePath).isFile()
-      )
-        return next();
-      res.setHeader('access-control-allow-origin', '*');
-      emulator.serve(req, res, {
-        filePath,
-        pathname: `/media${req.path}`,
-        contentType: mime[path.extname(filePath)] ?? 'application/octet-stream'
-      });
-    },
-    express.static(mediaRoot, staticOptions)
-  );
-
-  router.use('/src', express.static(path.join(root, 'src'), staticOptions));
-  router.use(express.static(path.join(webRoot, 'public'), staticOptions));
+  for (const [mountPath, controller] of controllers) router.use(mountPath, controller);
 
   if (basePath) {
     // The page uses relative URLs, so "/sfv" must become "/sfv/" before index.html is served.
@@ -123,11 +56,7 @@ export function createApp({
     });
   }
   app.use(basePath || '/', router);
-  app.use((req, res) => res.status(404).type('text').send('Not found'));
-  app.use((error, req, res, next) => {
-    // body-parser errors (bad JSON → 400, oversized → 413)
-    if (res.headersSent) return next(error);
-    res.status(error.status ?? 500).json({ error: error.message });
-  });
+  app.use(notFound);
+  app.use(errorHandler);
   return app;
 }
