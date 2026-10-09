@@ -21,6 +21,7 @@
     "serve:browser": "node web/server.mjs",
     "check:dashjs": "node scripts/prepare-dashjs.mjs ../dash.js --check",
     "verify:dashjs-integration": "node scripts/prepare-dashjs.mjs ../dash.js --verify-installed",
+    "install:dashjs-bundle": "node scripts/prepare-dashjs.mjs ../dash.js --install-bundle",
     "simulate:experiment": "node scripts/run-experiment.mjs examples/shared-network-experiment.json out/shared-experiment",
     "simulate:generators": "node scripts/run-experiment.mjs examples/generators-experiment.json out/generators-experiment",
     "simulate:cache-fault": "node scripts/run-experiment.mjs examples/cache-fault-experiment.json out/cache-fault-experiment",

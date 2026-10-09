@@ -2,12 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 
-/** Third-party browser bundles; currently only the patched dash.js build. */
-export function createVendorController({ dashRoot }) {
-  const dashBundle = path.join(path.resolve(dashRoot), 'dist/modern/umd/dash.all.min.js');
+/** Third-party browser bundles; currently only the patched dash.js build in web/vendor/. */
+export function createVendorController({ dashBundle }) {
+  dashBundle = path.resolve(dashBundle);
   if (!fs.existsSync(dashBundle))
     throw new Error(
-      `Patched dash.js browser bundle missing: ${dashBundle}; run npm run webpack-build-modern in your patched dash.js checkout`
+      `Patched dash.js browser bundle missing: ${dashBundle}; build your patched dash.js checkout, then run npm run install:dashjs-bundle`
     );
   const router = express.Router();
 

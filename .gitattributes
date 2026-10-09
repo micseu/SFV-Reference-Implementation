@@ -1,2 +1,4 @@
 # Git unified-diff context lines intentionally end with a single space.
 patches/*.patch -whitespace
+# Built dash.js bundle installed by `npm run install:dashjs-bundle`; no text diffs.
+web/vendor/dash.all.min.js -diff linguist-vendored

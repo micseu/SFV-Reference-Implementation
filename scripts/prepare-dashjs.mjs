@@ -5,9 +5,14 @@
  * node scripts/prepare-dashjs.mjs ../dash.js --check
  * node scripts/prepare-dashjs.mjs ../dash.js --apply
  * node scripts/prepare-dashjs.mjs ../dash.js --verify-installed
+ * node scripts/prepare-dashjs.mjs ../dash.js --install-bundle
+ *
+ * --install-bundle verifies the patched checkout like --verify-installed, then copies the
+ * webpack-build-modern bundle into web/vendor/, where the browser web app serves it from.
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -15,9 +20,9 @@ const EXPECTED = 'b1bde9f45f35e4565eaeb1ea4dfd6a5f8fd44bdb';
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dashRoot = path.resolve(process.argv[2] ?? '../dash.js');
 const mode = process.argv[3] ?? '--check';
-if (!['--check', '--apply', '--verify-installed'].includes(mode)) {
+if (!['--check', '--apply', '--verify-installed', '--install-bundle'].includes(mode)) {
   throw new Error(
-    'Usage: node scripts/prepare-dashjs.mjs ../dash.js --check|--apply|--verify-installed'
+    'Usage: node scripts/prepare-dashjs.mjs ../dash.js --check|--apply|--verify-installed|--install-bundle'
   );
 }
 const run = (exe, args) => execFileSync(exe, args, { cwd: dashRoot, encoding: 'utf8' }).trim();
@@ -46,7 +51,7 @@ const hasPort = apiMatch[0].includes("'getSFVPort'");
 const hasParser = apiMatch[0].includes("'parseSFVManifest'");
 const patch = path.join(scriptRoot, 'patches', 'dashjs-b1bde9f-CONSOLIDATED.patch');
 
-if (mode === '--verify-installed') {
+if (mode === '--verify-installed' || mode === '--install-bundle') {
   if (!hasPort || !hasParser) {
     throw new Error('dash.js API-surface test does not declare both SFV methods.');
   }
@@ -82,6 +87,10 @@ if (mode === '--verify-installed') {
   const failures = checks.filter(([ok]) => !ok).map(([, description]) => description);
   if (failures.length) {
     throw new Error(`SFV integration is incomplete: ${failures.join('; ')}`);
+  }
+  if (mode === '--install-bundle') {
+    installBundle();
+    process.exit(0);
   }
   console.log(
     `VERIFIED: SFV integrated in dash.js ${head}. Run npm run ci:verify and npm run webpack-build-modern.`
@@ -127,4 +136,52 @@ if (mode === '--check') {
   console.log('APPLIED: one consolidated SFV source patch + two API-surface-test entries.');
   console.log('NEXT: node scripts/prepare-dashjs.mjs ../dash.js --verify-installed');
   console.log('Then run npm ci, npm run ci:verify, npm run webpack-build-modern in dash.js.');
+}
+
+/** Copies the patched dash.js browser bundle, its licenses and a build record into web/vendor/. */
+function installBundle() {
+  const buildDir = path.join(dashRoot, 'dist/modern/umd');
+  const bundle = path.join(buildDir, 'dash.all.min.js');
+  if (!fs.existsSync(bundle)) {
+    throw new Error(
+      `Bundle missing: ${bundle}. Run npm run webpack-build-modern in dash.js first.`
+    );
+  }
+  // The bundle must come from the patched sources, not from an earlier unpatched build.
+  const modified = run('git', ['diff', '--name-only', 'HEAD']).split('\n').filter(Boolean);
+  const newestSourceMs = Math.max(
+    ...modified.map(file => fs.statSync(path.join(dashRoot, file)).mtimeMs)
+  );
+  if (fs.statSync(bundle).mtimeMs < newestSourceMs) {
+    throw new Error(
+      'Bundle is older than the patched dash.js sources. Run npm run webpack-build-modern again.'
+    );
+  }
+  const bytes = fs.readFileSync(bundle);
+  const missing = ['getSFVPort', 'parseSFVManifest'].filter(name => !bytes.includes(name));
+  if (missing.length) {
+    throw new Error(`Bundle does not expose the SFV methods ${missing.join(', ')}; rebuild it.`);
+  }
+  const sha256 = data => crypto.createHash('sha256').update(data).digest('hex');
+  const vendorDir = path.join(scriptRoot, 'web/vendor');
+  fs.mkdirSync(vendorDir, { recursive: true });
+  fs.copyFileSync(bundle, path.join(vendorDir, 'dash.all.min.js'));
+  fs.copyFileSync(`${bundle}.LICENSE.txt`, path.join(vendorDir, 'dash.all.min.js.LICENSE.txt'));
+  fs.copyFileSync(path.join(dashRoot, 'LICENSE.md'), path.join(vendorDir, 'dashjs-LICENSE.md'));
+  const record = {
+    schemaVersion: 1,
+    dashjsCommit: head,
+    patch: path.relative(scriptRoot, patch).split(path.sep).join('/'),
+    patchSha256: sha256(fs.readFileSync(patch)),
+    build: 'npm run webpack-build-modern',
+    bundleSha256: sha256(bytes),
+    bundleBytes: bytes.length
+  };
+  fs.writeFileSync(
+    path.join(vendorDir, 'dashjs-build.json'),
+    JSON.stringify(record, null, 2) + '\n'
+  );
+  console.log(
+    `INSTALLED: web/vendor/dash.all.min.js from dash.js ${head} (sha256 ${record.bundleSha256}).`
+  );
 }

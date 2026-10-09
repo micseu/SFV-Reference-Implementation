@@ -28,7 +28,7 @@ export function normalizeBasePath(value = '') {
 
 /** Serves the single-UE browser console, the shared src/ modules, DASH fixtures and the control endpoints. */
 export function createApp({
-  dashRoot = process.env.SFV_DASHJS_ROOT ?? path.join(root, '../dash.js'),
+  dashBundle = process.env.SFV_DASHJS_BUNDLE || path.join(webRoot, 'vendor/dash.all.min.js'),
   basePath = '',
   emulator = new SFVMediaNetworkEmulator(),
   serverInstanceId = randomUUID()
@@ -40,7 +40,7 @@ export function createApp({
   // Route table, relative to the base path. Order matters: the page files come last.
   const controllers = [
     ['/__sfv', createControlController({ emulator, serverInstanceId })],
-    ['/vendor', createVendorController({ dashRoot })],
+    ['/vendor', createVendorController({ dashBundle })],
     ['/media', createMediaController({ emulator, mediaRoot: path.join(root, 'fixtures/dash') })],
     ['/src', createStaticController(path.join(root, 'src'))],
     ['/', createStaticController(path.join(webRoot, 'public'))]

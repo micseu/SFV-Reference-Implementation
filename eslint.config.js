@@ -4,7 +4,15 @@ import stylistic from '@stylistic/eslint-plugin';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['node_modules/**', 'out/**', 'coverage/**', 'scenarios/validation/generated/**'] },
+  {
+    ignores: [
+      'node_modules/**',
+      'out/**',
+      'coverage/**',
+      'scenarios/validation/generated/**',
+      'web/vendor/**'
+    ]
+  },
   js.configs.recommended,
   // Turns off rules that conflict with Prettier. It must come before the project rules below,
   // because it also disables @stylistic/no-tabs, which the project re-enables on purpose.

@@ -20,6 +20,8 @@ __pycache__/
 .ruff_cache/
 dist/
 build/
+# Patched dash.js bundle installed by `npm run install:dashjs-bundle`
+web/vendor/
 
 # Additional developer tooling
 Thumbs.db

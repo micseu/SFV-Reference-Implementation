@@ -162,15 +162,14 @@ test('welcome, JSON-only setup and sticky player + event-log workspace retain co
 
 test('actual browser server reports same clock instance across clock and network endpoints', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sfv-clock-server-'));
-  const bundle = path.join(tmp, 'dist/modern/umd/dash.all.min.js');
-  fs.mkdirSync(path.dirname(bundle), { recursive: true });
+  const bundle = path.join(tmp, 'dash.all.min.js');
   fs.writeFileSync(
     bundle,
     'window.dashjs={MediaPlayer:()=>({create:()=>({updateSettings(){},parseSFVManifest(){}})})};'
   );
   const child = spawn(process.execPath, [path.join(root, 'web/server.mjs')], {
     cwd: root,
-    env: { ...process.env, SFV_DASHJS_ROOT: tmp, PORT: '0' },
+    env: { ...process.env, SFV_DASHJS_BUNDLE: bundle, PORT: '0' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
   let stderr = '';

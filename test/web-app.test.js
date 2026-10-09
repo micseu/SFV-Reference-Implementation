@@ -8,10 +8,9 @@ import { createApp, normalizeBasePath } from '../web/app.mjs';
 function withApp(options, run) {
   return async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sfv-web-app-'));
-    const bundle = path.join(tmp, 'dist/modern/umd/dash.all.min.js');
-    fs.mkdirSync(path.dirname(bundle), { recursive: true });
-    fs.writeFileSync(bundle, 'window.dashjs={};');
-    const server = createApp({ dashRoot: tmp, ...options }).listen(0, '127.0.0.1');
+    const dashBundle = path.join(tmp, 'dash.all.min.js');
+    fs.writeFileSync(dashBundle, 'window.dashjs={};');
+    const server = createApp({ dashBundle, ...options }).listen(0, '127.0.0.1');
     await new Promise(resolve => server.once('listening', resolve));
     try {
       await run(`http://127.0.0.1:${server.address().port}`);

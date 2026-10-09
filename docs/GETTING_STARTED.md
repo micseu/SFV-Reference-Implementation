@@ -36,15 +36,25 @@ npm ci
 npm run ci:verify
 npm run webpack-build-modern
 cd ../SFV-Reference-Implementation
+node scripts/prepare-dashjs.mjs ../dash.js --install-bundle
 npm run serve:browser
 ```
+
+`--install-bundle` verifies the patched checkout again, checks that the build is
+newer than the patched sources and exposes the SFV methods, then copies
+`dash.all.min.js` into `web/vendor/` together with the dash.js licenses and
+`dashjs-build.json` (dash.js commit, patch and bundle SHA-256). The web server
+serves only this in-repository bundle; the dash.js checkout is not needed at
+runtime. Rerun `--install-bundle` after every rebuild. To serve a different
+bundle file, set `SFV_DASHJS_BUNDLE`.
 
 Open http://127.0.0.1:8080/; paste `web/public/experiment-example.json` into
 **Enter Configuration**, start an experiment and export **Full Session JSON**.
 Save exported browser runs outside the Git working tree (or under ignored
 `out/`). `npm run verify` cannot replace real browser/MSE tests. Only use
 `--verify-installed` if the pinned checkout has already been patched; do not
-apply the patch twice. For a non-sibling checkout, set `SFV_DASHJS_ROOT`.
+apply the patch twice. For a non-sibling checkout, pass its path instead of
+`../dash.js`.
 
 On Windows run the same `npm`, `git` and `node` commands in PowerShell; on
 Linux/macOS use your normal shell. Check browser autoplay permission if playback
