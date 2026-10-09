@@ -1,0 +1,16 @@
+.git/
+.github/
+node_modules/
+out/
+coverage/
+*.log
+.env
+.env.*
+.vscode/
+.idea/
+# The image builds its own patched dash.js bundle; never copy a local one.
+web/vendor/
+scenarios/validation/generated/
+browser-session-*.json
+*-session-*.json
+*.zip

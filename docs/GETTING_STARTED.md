@@ -60,6 +60,35 @@ On Windows run the same `npm`, `git` and `node` commands in PowerShell; on
 Linux/macOS use your normal shell. Check browser autoplay permission if playback
 is blocked. A cross-OS real-browser CI matrix has not been established.
 
+## Environment variables
+
+Only the browser web server (`npm run serve:browser`, `web/server.mjs`) reads
+environment variables, once at startup; changing them requires a restart. The
+simulator, validation scripts and `prepare-dashjs.mjs` read none.
+
+| Variable            | Default                      | Purpose                                                                                                                                                                        |
+| ------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SFV_HOST`          | `127.0.0.1`                  | IP address to listen on. Use `0.0.0.0` (or `::`) for all interfaces; the control endpoints have no authentication, so only do this on trusted networks.                        |
+| `PORT`              | `8080`                       | TCP port. `0` picks a free port, printed at startup.                                                                                                                           |
+| `SFV_BASE_PATH`     | _(empty: site root)_         | Common subpath for all routes, e.g. `/lab/sfv`; `/lab/sfv` redirects to `/lab/sfv/`. Segments may contain letters, digits, `.`, `_`, `~` and `-`; anything else fails startup. |
+| `SFV_DASHJS_BUNDLE` | `web/vendor/dash.all.min.js` | Path of the patched dash.js bundle served at `vendor/dash.all.min.js`. Startup fails if the file does not exist.                                                               |
+
+```sh
+SFV_HOST=0.0.0.0 PORT=9000 SFV_BASE_PATH=/sfv npm run serve:browser
+# SFV browser demo: http://0.0.0.0:9000/sfv/
+```
+
+In PowerShell set them first, e.g. `$env:SFV_BASE_PATH = '/sfv'`.
+
+### Docker
+
+The image sets `SFV_HOST=0.0.0.0`, `PORT=8080` and `NODE_ENV=production`;
+override any variable with `docker run -e`, e.g.
+`docker run --rm -p 127.0.0.1:8080:8080 -e SFV_BASE_PATH=/sfv sfv-browser`.
+Build arguments (`docker build --build-arg`): `NODE_VERSION` (default `22`) and
+`DASHJS_COMMIT` (default: the pinned `b1bde9f…`; the SFV patch only applies to
+that commit).
+
 ## Replay commands
 
 To prepare configurations for new full browser exports:
