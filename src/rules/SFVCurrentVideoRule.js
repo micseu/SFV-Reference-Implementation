@@ -1,10 +1,4 @@
-import {
-  BaseSFVRule,
-  bufferedIndices,
-  cached,
-  catalogVideo,
-  inFlight
-} from './helpers.js';
+import { BaseSFVRule, bufferedIndices, cached, catalogVideo, inFlight } from './helpers.js';
 
 export class SFVCurrentVideoRule extends BaseSFVRule {
   constructor() {
@@ -50,22 +44,21 @@ export class SFVCurrentVideoRule extends BaseSFVRule {
     const buffered = new Set(bufferedIndices(context, video.videoId));
     const playheadS = current.playback.positionS ?? 0;
     const nextSegment = selectedRepresentation.segments.find(
-      (segment) =>
-        segment.startS + segment.durationS > playheadS && !buffered.has(segment.index)
+      segment => segment.startS + segment.durationS > playheadS && !buffered.has(segment.index)
     );
 
     if (nextSegment) {
       const appendCandidate = context
         .getCachedResources({ videoId: video.videoId })
         .filter(
-          (item) =>
+          item =>
             item.resource.resourceType === 'media' &&
             item.resource.segmentIndex === nextSegment.index
         )
         .sort((a, b) =>
           String(a.resource.representationId).localeCompare(String(b.resource.representationId))
         )
-        .find((item) =>
+        .find(item =>
           cached(context, {
             videoId: video.videoId,
             resourceType: 'init',
@@ -86,7 +79,7 @@ export class SFVCurrentVideoRule extends BaseSFVRule {
 
     const targetCount = this.config.activeBufferTargetSegments ?? 2;
     const targetSegments = selectedRepresentation.segments
-      .filter((segment) => segment.startS + segment.durationS > playheadS)
+      .filter(segment => segment.startS + segment.durationS > playheadS)
       .slice(0, targetCount);
 
     for (const segment of targetSegments) {

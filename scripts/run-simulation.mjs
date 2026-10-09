@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { SFVSimulationController } from '../src/simulation/SFVSimulationController.js';
 import { SFVCurrentVideoRule } from '../src/rules/SFVCurrentVideoRule.js';
 import { SFVMultiVideoPrefetchRule } from '../src/rules/SFVMultiVideoPrefetchRule.js';
-import {writeCompactEventArtifacts} from './compact-event-artifacts.mjs';
+import { writeCompactEventArtifacts } from './compact-event-artifacts.mjs';
 
 const dataset = JSON.parse(
   fs.readFileSync(new URL('../fixtures/content/content.json', import.meta.url))
@@ -39,20 +39,21 @@ const out = new SFVSimulationController({
 }).run();
 
 fs.mkdirSync('out', { recursive: true });
-writeCompactEventArtifacts({result:out,outputDirectory:'out',prefix:mode,
-  networkEvents:[{eventType:'EMULATION_STARTED',time:0,capacityMbps:4}]});
+writeCompactEventArtifacts({
+  result: out,
+  outputDirectory: 'out',
+  prefix: mode,
+  networkEvents: [{ eventType: 'EMULATION_STARTED', time: 0, capacityMbps: 4 }]
+});
 fs.writeFileSync(
   `out/${mode}-events.jsonl`,
-  out.events.map((item) => JSON.stringify(item)).join('\n') + '\n'
+  out.events.map(item => JSON.stringify(item)).join('\n') + '\n'
 );
 fs.writeFileSync(
   `out/${mode}-requests.jsonl`,
-  out.requests.map((item) => JSON.stringify(item)).join('\n') + '\n'
+  out.requests.map(item => JSON.stringify(item)).join('\n') + '\n'
 );
-fs.writeFileSync(
-  `out/${mode}-session.json`,
-  JSON.stringify(out.sessionRecord, null, 2)
-);
+fs.writeFileSync(`out/${mode}-session.json`, JSON.stringify(out.sessionRecord, null, 2));
 
 console.log(
   JSON.stringify(
@@ -61,7 +62,7 @@ console.log(
       timeS: out.timeS,
       terminationReason: out.terminationReason,
       requests: out.requests.length,
-      decisions: out.events.filter((event) => event.eventType === 'RULE_DECISION').length,
+      decisions: out.events.filter(event => event.eventType === 'RULE_DECISION').length,
       bytesDelivered: out.sessionRecord.session_summary.bytes_delivered,
       bytesMediaDelivered: out.sessionRecord.session_summary.bytes_media_delivered,
       bytesDataWastage: out.sessionRecord.session_summary.bytes_data_wastage,

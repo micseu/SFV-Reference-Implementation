@@ -104,10 +104,7 @@ export class SFVSimulatedPlaybackAgent {
       const end = this.bufferEnd();
       const delta = time - this.lastUpdateTime;
       this.positionS = Math.min(this.positionS + delta, end, this.durationS);
-      if (
-        this.positionS >= end - 1e-8 &&
-        this.positionS < this.durationS - 1e-8
-      ) {
+      if (this.positionS >= end - 1e-8 && this.positionS < this.durationS - 1e-8) {
         this.stalled = true;
         this.stallStartedAt = time;
       }
@@ -120,9 +117,10 @@ export class SFVSimulatedPlaybackAgent {
     if (this.positionS >= this.durationS - 1e-9) return Infinity;
     // Wake at segment boundaries as well as buffer exhaustion, so a quality
     // transition can be timestamped precisely without creating policy decisions.
-    const nextBoundary=(Math.floor((this.positionS+1e-8)/this.segmentDurationS)+1)*this.segmentDurationS;
-    const target=Math.min(this.bufferEnd(),this.durationS,nextBoundary);
-    return now + Math.max(0,target-this.positionS);
+    const nextBoundary =
+      (Math.floor((this.positionS + 1e-8) / this.segmentDurationS) + 1) * this.segmentDurationS;
+    const target = Math.min(this.bufferEnd(), this.durationS, nextBoundary);
+    return now + Math.max(0, target - this.positionS);
   }
 
   bufferEnd() {

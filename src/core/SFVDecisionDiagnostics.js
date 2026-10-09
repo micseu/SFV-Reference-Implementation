@@ -36,31 +36,55 @@ export function finalizeDecisionDiagnostic(inputs, rule, decision) {
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map(key => [key, canonical(value[key])])
+    );
   }
   return value;
 }
 
 /** Reproduce an opt-in record with the ORIGINAL rule class, not a reimplementation. */
 export function replayRecordedDecision(record, RuleClass) {
-  if (record?.schemaVersion !== SFV_DECISION_DIAGNOSTIC_VERSION || !record.context ||
-      !Array.isArray(record.observations) || !record.decision || record.stateBefore === null ||
-      !RuleClass || typeof RuleClass !== 'function') {
-    throw new TypeError('Replay requires a complete v1 diagnostic, a restorable rule state and its original rule class');
+  if (
+    record?.schemaVersion !== SFV_DECISION_DIAGNOSTIC_VERSION ||
+    !record.context ||
+    !Array.isArray(record.observations) ||
+    !record.decision ||
+    record.stateBefore === null ||
+    !RuleClass ||
+    typeof RuleClass !== 'function'
+  ) {
+    throw new TypeError(
+      'Replay requires a complete v1 diagnostic, a restorable rule state and its original rule class'
+    );
   }
   const rule = new RuleClass();
-  if (typeof rule.setState !== 'function') throw new TypeError('Rule must implement setState() for replay');
+  if (typeof rule.setState !== 'function')
+    throw new TypeError('Rule must implement setState() for replay');
   rule.setState(structuredClone(record.stateBefore));
   const context = contextFromSnapshot(record.context);
   rule.onObservationBatch?.(structuredClone(record.observations), context);
-  const result = rule.getSwitchRequest(context) ?? {actions: []};
+  const result = rule.getSwitchRequest(context) ?? { actions: [] };
   const actions = result.actions ?? [];
-  const ordered = [...actions.filter(a => a.actionType === 'ABORT'),
-    ...actions.filter(a => a.actionType !== 'ABORT')];
-  const actual = {rule: result.rule ?? rule.name ?? rule.constructor.name,
-    reason: result.reason ?? null, actions: ordered};
-  const expected = {rule: record.decision.rule,
-    reason: record.decision.reason ?? null, actions: record.decision.actions};
-  return {passed: JSON.stringify(canonical(actual)) === JSON.stringify(canonical(expected)),
-    actual, expected};
+  const ordered = [
+    ...actions.filter(a => a.actionType === 'ABORT'),
+    ...actions.filter(a => a.actionType !== 'ABORT')
+  ];
+  const actual = {
+    rule: result.rule ?? rule.name ?? rule.constructor.name,
+    reason: result.reason ?? null,
+    actions: ordered
+  };
+  const expected = {
+    rule: record.decision.rule,
+    reason: record.decision.reason ?? null,
+    actions: record.decision.actions
+  };
+  return {
+    passed: JSON.stringify(canonical(actual)) === JSON.stringify(canonical(expected)),
+    actual,
+    expected
+  };
 }

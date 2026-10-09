@@ -1,43 +1,585 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SFV Reference Player · Experiment Console</title>
-<style>
-:root{color-scheme:dark;--bg:#090f1c;--panel:#121e31;--panel2:#192840;--stroke:#31415c;--text:#f1f5ff;--muted:#b5c6dd;--accent:#64d9c4;--focus:#b3fae8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
-button,select,input,textarea{font:inherit}button{cursor:pointer;border:1px solid #59708f;color:var(--text);background:var(--panel2);border-radius:9px;padding:.55rem .85rem}button:hover:not(:disabled){background:#263b56;border-color:var(--accent)}button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:#146c65;border-color:#42c9b6;font-weight:700}.primary:hover:not(:disabled){background:#1a8277} .muted{color:var(--muted)}small{color:var(--muted)}
-header{max-width:1380px;margin:auto;padding:1.05rem 1.25rem .65rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}header h1{font-size:1.28rem;margin:0;letter-spacing:.01em}header p{margin:.15rem 0 0;font-size:.85rem;color:var(--muted)}.pill{color:var(--accent);border:1px solid #40786f;padding:.25rem .55rem;border-radius:30px;font-size:.76rem;white-space:nowrap}
-main{max-width:1380px;margin:auto;padding:0 1.25rem 2rem}.screen[hidden]{display:none!important}.welcome{min-height:66vh;display:grid;place-content:center}.welcome h2{font-size:clamp(1.6rem,3vw,2.25rem);margin:0}.choice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;max-width:850px;margin-top:1.3rem}.choice{border:1px solid var(--stroke);border-radius:15px;padding:1.5rem;background:var(--panel);display:flex;flex-direction:column;gap:.75rem}.choice h3{margin:0}.choice button{margin-top:auto}.setup{max-width:920px;margin:0 auto;border:1px solid var(--stroke);background:var(--panel);padding:1.25rem;border-radius:15px}.setup h2{margin:.3rem 0}.setup-actions,.toolbar,.event-log-controls{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}.setup-actions{margin:.65rem 0}textarea{display:block;width:100%;background:#0a1525;color:var(--text);border:1px solid #526782;border-radius:8px;padding:.85rem;font:12.5px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}#experimentconfig{min-height:340px;margin:.8rem 0}.message{color:var(--muted);font-size:.87rem;margin:.65rem 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.pinned-workspace{position:sticky;top:0;z-index:5;border:1px solid var(--stroke);border-radius:14px;background:#0c1729;box-shadow:0 14px 34px #02060eae;padding:.85rem;max-height:94vh;display:flex;flex-direction:column;gap:.65rem}.toolbar{justify-content:space-between}.toolbar-left,.toolbar-right{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}.viewer-grid{display:grid;grid-template-columns:minmax(180px,360px) minmax(0,1fr);gap:.85rem;min-height:0;flex:1}.video-pane{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;border:1px solid #253850;background:#040914;border-radius:10px;padding:.35rem}video{display:block;width:auto;height:min(53vh,510px);max-width:100%;aspect-ratio:9/16;background:#000;border-radius:7px;object-fit:contain}.event-pane{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--stroke);border-radius:10px;padding:.8rem}.event-pane h2{font-size:1rem;margin:0}.event-source-filters{display:flex;gap:.35rem .75rem;flex-wrap:wrap;margin:.5rem 0 .1rem;border:0;padding:0}.event-source-filters legend{font-size:.75rem;color:var(--muted);margin-bottom:.2rem}.event-source-filters label{display:inline-flex;flex-direction:row;align-items:center;gap:.3rem;font-size:.77rem;cursor:pointer}.event-source-filters input{accent-color:#42c9b6}.event-pane .event-heading{display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap}.event-log{margin:.5rem 0 0;white-space:pre;overflow:auto;min-height:130px;flex:1;max-height:min(53vh,510px);background:#071222;color:#dce8f5;border-radius:7px;padding:.7rem;font:12px/1.6 ui-monospace,Consolas,monospace}.status{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);margin:0}.below{margin:1rem 0;display:grid;gap:1rem}.panel{border:1px solid var(--stroke);border-radius:12px;background:var(--panel);padding:1rem}.panel h2{font-size:1.1rem;margin:0 0 .65rem}.setting-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.65rem}label{display:flex;flex-direction:column;gap:.3rem;font-size:.88rem}input,select{background:#0a1525;color:var(--text);border:1px solid #536784;border-radius:7px;padding:.5rem;max-width:100%}.panel textarea{min-height:80px;margin:.35rem 0}.config-note{font-size:.83rem;color:var(--muted)}#log{max-height:180px;overflow:auto;white-space:pre-wrap;font:12px/1.5 ui-monospace,Consolas,monospace;background:#081223;padding:.65rem;border-radius:7px}details summary{cursor:pointer}
-@media(max-width:700px){header,main{padding-left:.65rem;padding-right:.65rem}.choice-grid{grid-template-columns:1fr}.pinned-workspace{max-height:95dvh;padding:.5rem}.viewer-grid{grid-template-columns:minmax(0,1fr);gap:.4rem;overflow:hidden}video{height:min(34dvh,300px)}.video-pane{padding:.2rem}.event-pane{min-height:120px}.event-log{max-height:24dvh;min-height:75px}.toolbar button{font-size:.82rem;padding:.35rem .5rem}.status{font-size:.75rem}}
-</style>
-</head>
-<body>
-<header><div><h1>SFV · Reference Player</h1><p>Local DASH playback and reproducible experiments</p></div><span class="pill">Single UE · dash.js</span></header>
-<main>
-<section id="entry-screen" class="screen welcome" aria-labelledby="entry-title">
- <h2 id="entry-title">How would you like to start?</h2><p class="muted">Choose a full JSON experiment or open the player and configure it manually.</p>
- <div class="choice-grid"><div class="choice"><h3>Use experiment JSON</h3><p class="muted">Paste a reproducible configuration for ABR, playlist, user actions, network trace and cache.</p><button id="choose-json" class="primary" type="button">Enter Configuration</button></div><div class="choice"><h3>Use player controls</h3><p class="muted">Open the player and event log immediately. Start a session with the controls and optionally change settings below.</p><button id="choose-manual" class="primary" type="button">Open Player</button></div></div>
-</section>
-<section id="json-screen" class="screen setup" aria-labelledby="json-config-title" hidden>
- <h2 id="json-config-title">Experiment Configuration (JSON)</h2><p class="muted">Paste a complete, versioned single-UE browser experiment. The configuration is validated before the session starts; manual settings are never silently mixed in.</p>
- <label for="experimentconfig">Experiment JSON</label><textarea id="experimentconfig" spellcheck="false" rows="18" placeholder='{"schemaVersion":1,"experimentId":"my-browser-run","abr":{"name":"prefetch"},"playlist":["v1","v2","v3"]}'></textarea>
- <div class="setup-actions"><button id="example-config" type="button">Load Example JSON</button><button id="fields-to-json" type="button">Copy Manual Fields to JSON</button><button id="start-experiment" class="primary" type="button">Start Experiment</button><button id="config-back" type="button">Back</button></div>
- <p id="setup-message" class="message" role="status">Use null for an unlimited cache and 0 for unlimited active requests.</p>
-</section>
-<section id="workspace-screen" class="screen" hidden>
- <div class="pinned-workspace">
-  <div class="toolbar"><div class="toolbar-left"><button id="start" class="primary" type="button">Start Session</button><button id="enable-playback" type="button" hidden>Enable Playback</button><button id="swipe" disabled type="button">Next Video</button><button id="end" type="button">End Session</button></div><div class="toolbar-right"><button id="configure-new" type="button">Configure New Experiment</button></div></div>
-  <div class="viewer-grid"><div class="video-pane"><video id="video" playsinline muted controls aria-label="Current short-form video"></video></div>
-   <section class="event-pane" aria-labelledby="event-log-title"><div class="event-heading"><h2 id="event-log-title">Event Log</h2><div class="event-log-controls"><button id="copy-event-log" type="button" disabled>Copy Short Log</button><button id="export" type="button" disabled>Download Full Session JSON</button></div></div><small>Session-relative timestamps · User / Network / Player / ABR / Cache</small><small id="clock-summary">Server clock: not synchronized</small><fieldset id="event-source-filters" class="event-source-filters" aria-label="Event source filters"><legend>Visible sources · Copy and JSON export retain all events</legend><label><input type="checkbox" value="User" checked>User</label><label><input type="checkbox" value="Network" checked>Network</label><label><input type="checkbox" value="Player" checked>Player</label><label><input type="checkbox" value="ABR" checked>ABR</label><label><input type="checkbox" value="Cache" checked>Cache</label><label><input type="checkbox" value="System" checked>System</label></fieldset><pre id="event-log" class="event-log" role="log" aria-label="Short event log">No events yet.</pre></section></div>
-  <p id="status" class="status" role="status">Not started</p>
- </div>
- <div class="below"><section class="panel" aria-labelledby="manual-title"><h2 id="manual-title">Manual Session Settings</h2><p class="config-note">These fields apply when you use Start Session. A JSON-started experiment uses only its validated JSON configuration.</p>
-  <div class="setting-grid"><label>Rule<select id="rule"><option value="b1">B1 · Current video only</option><option value="b2">B2 · Multi-video prefetch</option></select></label><label>MPS<input id="mps" type="number" min="0" value="4" max="30"></label><label>PSPV<input id="pspv" type="number" min="0" value="2" max="30"></label><label>Max active requests (0 = unlimited)<input id="maxrequests" type="number" min="0" value="4" max="64"></label><label>Cache capacity (bytes; blank = unlimited)<input id="cachebytes" type="number" min="0" placeholder="unlimited"></label><label><span>ABR decision diagnostics (large JSON)</span><input id="abrdiagnostics" type="checkbox"></label><label>Max HTTP retries<input id="retries" type="number" min="0" max="3" value="0"></label></div>
-  <label for="userprofile">User automation JSON (blank = manual)</label><textarea id="userprofile" spellcheck="false" placeholder='{"type":"sequence","swipeTimesS":[3,6],"sessionDurationS":10}'></textarea><small>Seeded example: {"type":"seeded","seed":42,"sessionStartWindowS":[0,2],"watchDurationRangeS":[2,5],"sessionDurationS":12}.</small>
-  <label for="networkprofile">Local HTTP network emulation JSON (blank = unrestricted)</label><textarea id="networkprofile" spellcheck="false" placeholder='{"capacityTrace":[[0,8],[4,2],[8,5]],"latencyMs":40}'></textarea><small>Capacity in Mbit/s shared across media responses; an HTTP response-rate approximation, not a packet-level emulator.</small></section>
-  <details class="panel"><summary>Diagnostics and clock synchronization</summary><p class="config-note" id="clock-status">Server clock not synchronized yet.</p><pre id="log" aria-label="Diagnostic messages"></pre></details></div>
-</section>
-</main><script src="/vendor/dash.all.min.js"></script><script type="module" src="/main.js"></script>
-</body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SFV Reference Player · Experiment Console</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090f1c;
+        --panel: #121e31;
+        --panel2: #192840;
+        --stroke: #31415c;
+        --text: #f1f5ff;
+        --muted: #b5c6dd;
+        --accent: #64d9c4;
+        --focus: #b3fae8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          Segoe UI,
+          sans-serif;
+      }
+      button,
+      select,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid #59708f;
+        color: var(--text);
+        background: var(--panel2);
+        border-radius: 9px;
+        padding: 0.55rem 0.85rem;
+      }
+      button:hover:not(:disabled) {
+        background: #263b56;
+        border-color: var(--accent);
+      }
+      button:focus-visible,
+      textarea:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .primary {
+        background: #146c65;
+        border-color: #42c9b6;
+        font-weight: 700;
+      }
+      .primary:hover:not(:disabled) {
+        background: #1a8277;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      small {
+        color: var(--muted);
+      }
+      header {
+        max-width: 1380px;
+        margin: auto;
+        padding: 1.05rem 1.25rem 0.65rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+      header h1 {
+        font-size: 1.28rem;
+        margin: 0;
+        letter-spacing: 0.01em;
+      }
+      header p {
+        margin: 0.15rem 0 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .pill {
+        color: var(--accent);
+        border: 1px solid #40786f;
+        padding: 0.25rem 0.55rem;
+        border-radius: 30px;
+        font-size: 0.76rem;
+        white-space: nowrap;
+      }
+      main {
+        max-width: 1380px;
+        margin: auto;
+        padding: 0 1.25rem 2rem;
+      }
+      .screen[hidden] {
+        display: none !important;
+      }
+      .welcome {
+        min-height: 66vh;
+        display: grid;
+        place-content: center;
+      }
+      .welcome h2 {
+        font-size: clamp(1.6rem, 3vw, 2.25rem);
+        margin: 0;
+      }
+      .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        max-width: 850px;
+        margin-top: 1.3rem;
+      }
+      .choice {
+        border: 1px solid var(--stroke);
+        border-radius: 15px;
+        padding: 1.5rem;
+        background: var(--panel);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .choice h3 {
+        margin: 0;
+      }
+      .choice button {
+        margin-top: auto;
+      }
+      .setup {
+        max-width: 920px;
+        margin: 0 auto;
+        border: 1px solid var(--stroke);
+        background: var(--panel);
+        padding: 1.25rem;
+        border-radius: 15px;
+      }
+      .setup h2 {
+        margin: 0.3rem 0;
+      }
+      .setup-actions,
+      .toolbar,
+      .event-log-controls {
+        display: flex;
+        gap: 0.45rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .setup-actions {
+        margin: 0.65rem 0;
+      }
+      textarea {
+        display: block;
+        width: 100%;
+        background: #0a1525;
+        color: var(--text);
+        border: 1px solid #526782;
+        border-radius: 8px;
+        padding: 0.85rem;
+        font:
+          12.5px/1.55 ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+        resize: vertical;
+      }
+      #experimentconfig {
+        min-height: 340px;
+        margin: 0.8rem 0;
+      }
+      .message {
+        color: var(--muted);
+        font-size: 0.87rem;
+        margin: 0.65rem 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .pinned-workspace {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        border: 1px solid var(--stroke);
+        border-radius: 14px;
+        background: #0c1729;
+        box-shadow: 0 14px 34px #02060eae;
+        padding: 0.85rem;
+        max-height: 94vh;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+      .toolbar {
+        justify-content: space-between;
+      }
+      .toolbar-left,
+      .toolbar-right {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .viewer-grid {
+        display: grid;
+        grid-template-columns: minmax(180px, 360px) minmax(0, 1fr);
+        gap: 0.85rem;
+        min-height: 0;
+        flex: 1;
+      }
+      .video-pane {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+        border: 1px solid #253850;
+        background: #040914;
+        border-radius: 10px;
+        padding: 0.35rem;
+      }
+      video {
+        display: block;
+        width: auto;
+        height: min(53vh, 510px);
+        max-width: 100%;
+        aspect-ratio: 9/16;
+        background: #000;
+        border-radius: 7px;
+        object-fit: contain;
+      }
+      .event-pane {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--panel);
+        border: 1px solid var(--stroke);
+        border-radius: 10px;
+        padding: 0.8rem;
+      }
+      .event-pane h2 {
+        font-size: 1rem;
+        margin: 0;
+      }
+      .event-source-filters {
+        display: flex;
+        gap: 0.35rem 0.75rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.1rem;
+        border: 0;
+        padding: 0;
+      }
+      .event-source-filters legend {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 0.2rem;
+      }
+      .event-source-filters label {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.77rem;
+        cursor: pointer;
+      }
+      .event-source-filters input {
+        accent-color: #42c9b6;
+      }
+      .event-pane .event-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+      .event-log {
+        margin: 0.5rem 0 0;
+        white-space: pre;
+        overflow: auto;
+        min-height: 130px;
+        flex: 1;
+        max-height: min(53vh, 510px);
+        background: #071222;
+        color: #dce8f5;
+        border-radius: 7px;
+        padding: 0.7rem;
+        font:
+          12px/1.6 ui-monospace,
+          Consolas,
+          monospace;
+      }
+      .status {
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--muted);
+        margin: 0;
+      }
+      .below {
+        margin: 1rem 0;
+        display: grid;
+        gap: 1rem;
+      }
+      .panel {
+        border: 1px solid var(--stroke);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 1rem;
+      }
+      .panel h2 {
+        font-size: 1.1rem;
+        margin: 0 0 0.65rem;
+      }
+      .setting-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 0.65rem;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.88rem;
+      }
+      input,
+      select {
+        background: #0a1525;
+        color: var(--text);
+        border: 1px solid #536784;
+        border-radius: 7px;
+        padding: 0.5rem;
+        max-width: 100%;
+      }
+      .panel textarea {
+        min-height: 80px;
+        margin: 0.35rem 0;
+      }
+      .config-note {
+        font-size: 0.83rem;
+        color: var(--muted);
+      }
+      #log {
+        max-height: 180px;
+        overflow: auto;
+        white-space: pre-wrap;
+        font:
+          12px/1.5 ui-monospace,
+          Consolas,
+          monospace;
+        background: #081223;
+        padding: 0.65rem;
+        border-radius: 7px;
+      }
+      details summary {
+        cursor: pointer;
+      }
+      @media (max-width: 700px) {
+        header,
+        main {
+          padding-left: 0.65rem;
+          padding-right: 0.65rem;
+        }
+        .choice-grid {
+          grid-template-columns: 1fr;
+        }
+        .pinned-workspace {
+          max-height: 95dvh;
+          padding: 0.5rem;
+        }
+        .viewer-grid {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 0.4rem;
+          overflow: hidden;
+        }
+        video {
+          height: min(34dvh, 300px);
+        }
+        .video-pane {
+          padding: 0.2rem;
+        }
+        .event-pane {
+          min-height: 120px;
+        }
+        .event-log {
+          max-height: 24dvh;
+          min-height: 75px;
+        }
+        .toolbar button {
+          font-size: 0.82rem;
+          padding: 0.35rem 0.5rem;
+        }
+        .status {
+          font-size: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>SFV · Reference Player</h1>
+        <p>Local DASH playback and reproducible experiments</p>
+      </div>
+      <span class="pill">Single UE · dash.js</span>
+    </header>
+    <main>
+      <section id="entry-screen" class="screen welcome" aria-labelledby="entry-title">
+        <h2 id="entry-title">How would you like to start?</h2>
+        <p class="muted">
+          Choose a full JSON experiment or open the player and configure it manually.
+        </p>
+        <div class="choice-grid">
+          <div class="choice">
+            <h3>Use experiment JSON</h3>
+            <p class="muted">
+              Paste a reproducible configuration for ABR, playlist, user actions, network trace and
+              cache.
+            </p>
+            <button id="choose-json" class="primary" type="button">Enter Configuration</button>
+          </div>
+          <div class="choice">
+            <h3>Use player controls</h3>
+            <p class="muted">
+              Open the player and event log immediately. Start a session with the controls and
+              optionally change settings below.
+            </p>
+            <button id="choose-manual" class="primary" type="button">Open Player</button>
+          </div>
+        </div>
+      </section>
+      <section id="json-screen" class="screen setup" aria-labelledby="json-config-title" hidden>
+        <h2 id="json-config-title">Experiment Configuration (JSON)</h2>
+        <p class="muted">
+          Paste a complete, versioned single-UE browser experiment. The configuration is validated
+          before the session starts; manual settings are never silently mixed in.
+        </p>
+        <label for="experimentconfig">Experiment JSON</label
+        ><textarea
+          id="experimentconfig"
+          spellcheck="false"
+          rows="18"
+          placeholder='{"schemaVersion":1,"experimentId":"my-browser-run","abr":{"name":"prefetch"},"playlist":["v1","v2","v3"]}'
+        ></textarea>
+        <div class="setup-actions">
+          <button id="example-config" type="button">Load Example JSON</button
+          ><button id="fields-to-json" type="button">Copy Manual Fields to JSON</button
+          ><button id="start-experiment" class="primary" type="button">Start Experiment</button
+          ><button id="config-back" type="button">Back</button>
+        </div>
+        <p id="setup-message" class="message" role="status">
+          Use null for an unlimited cache and 0 for unlimited active requests.
+        </p>
+      </section>
+      <section id="workspace-screen" class="screen" hidden>
+        <div class="pinned-workspace">
+          <div class="toolbar">
+            <div class="toolbar-left">
+              <button id="start" class="primary" type="button">Start Session</button
+              ><button id="enable-playback" type="button" hidden>Enable Playback</button
+              ><button id="swipe" disabled type="button">Next Video</button
+              ><button id="end" type="button">End Session</button>
+            </div>
+            <div class="toolbar-right">
+              <button id="configure-new" type="button">Configure New Experiment</button>
+            </div>
+          </div>
+          <div class="viewer-grid">
+            <div class="video-pane">
+              <video
+                id="video"
+                playsinline
+                muted
+                controls
+                aria-label="Current short-form video"
+              ></video>
+            </div>
+            <section class="event-pane" aria-labelledby="event-log-title">
+              <div class="event-heading">
+                <h2 id="event-log-title">Event Log</h2>
+                <div class="event-log-controls">
+                  <button id="copy-event-log" type="button" disabled>Copy Short Log</button
+                  ><button id="export" type="button" disabled>Download Full Session JSON</button>
+                </div>
+              </div>
+              <small>Session-relative timestamps · User / Network / Player / ABR / Cache</small
+              ><small id="clock-summary">Server clock: not synchronized</small>
+              <fieldset
+                id="event-source-filters"
+                class="event-source-filters"
+                aria-label="Event source filters"
+              >
+                <legend>Visible sources · Copy and JSON export retain all events</legend>
+                <label><input type="checkbox" value="User" checked />User</label
+                ><label><input type="checkbox" value="Network" checked />Network</label
+                ><label><input type="checkbox" value="Player" checked />Player</label
+                ><label><input type="checkbox" value="ABR" checked />ABR</label
+                ><label><input type="checkbox" value="Cache" checked />Cache</label
+                ><label><input type="checkbox" value="System" checked />System</label>
+              </fieldset>
+              <pre id="event-log" class="event-log" role="log" aria-label="Short event log">
+No events yet.</pre>
+            </section>
+          </div>
+          <p id="status" class="status" role="status">Not started</p>
+        </div>
+        <div class="below">
+          <section class="panel" aria-labelledby="manual-title">
+            <h2 id="manual-title">Manual Session Settings</h2>
+            <p class="config-note">
+              These fields apply when you use Start Session. A JSON-started experiment uses only its
+              validated JSON configuration.
+            </p>
+            <div class="setting-grid">
+              <label
+                >Rule<select id="rule">
+                  <option value="b1">B1 · Current video only</option>
+                  <option value="b2">B2 · Multi-video prefetch</option>
+                </select></label
+              ><label>MPS<input id="mps" type="number" min="0" value="4" max="30" /></label
+              ><label>PSPV<input id="pspv" type="number" min="0" value="2" max="30" /></label
+              ><label
+                >Max active requests (0 = unlimited)<input
+                  id="maxrequests"
+                  type="number"
+                  min="0"
+                  value="4"
+                  max="64" /></label
+              ><label
+                >Cache capacity (bytes; blank = unlimited)<input
+                  id="cachebytes"
+                  type="number"
+                  min="0"
+                  placeholder="unlimited" /></label
+              ><label
+                ><span>ABR decision diagnostics (large JSON)</span
+                ><input id="abrdiagnostics" type="checkbox" /></label
+              ><label
+                >Max HTTP retries<input id="retries" type="number" min="0" max="3" value="0"
+              /></label>
+            </div>
+            <label for="userprofile">User automation JSON (blank = manual)</label
+            ><textarea
+              id="userprofile"
+              spellcheck="false"
+              placeholder='{"type":"sequence","swipeTimesS":[3,6],"sessionDurationS":10}'
+            ></textarea
+            ><small
+              >Seeded example:
+              {"type":"seeded","seed":42,"sessionStartWindowS":[0,2],"watchDurationRangeS":[2,5],"sessionDurationS":12}.</small
+            >
+            <label for="networkprofile"
+              >Local HTTP network emulation JSON (blank = unrestricted)</label
+            ><textarea
+              id="networkprofile"
+              spellcheck="false"
+              placeholder='{"capacityTrace":[[0,8],[4,2],[8,5]],"latencyMs":40}'
+            ></textarea
+            ><small
+              >Capacity in Mbit/s shared across media responses; an HTTP response-rate
+              approximation, not a packet-level emulator.</small
+            >
+          </section>
+          <details class="panel">
+            <summary>Diagnostics and clock synchronization</summary>
+            <p class="config-note" id="clock-status">Server clock not synchronized yet.</p>
+            <pre id="log" aria-label="Diagnostic messages"></pre>
+          </details>
+        </div>
+      </section>
+    </main>
+    <script src="/vendor/dash.all.min.js"></script>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

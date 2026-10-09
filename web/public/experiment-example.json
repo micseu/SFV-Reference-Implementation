@@ -17,10 +17,14 @@
     "sessionDurationS": 10
   },
   "network": {
-    "capacityTrace": [[0, 8], [4, 2], [8, 5]],
+    "capacityTrace": [
+      [0, 8],
+      [4, 2],
+      [8, 5]
+    ],
     "latencyMs": 40
   },
-  "cache": {"maxBytes": null},
-  "scheduling": {"maxConcurrentRequests": 4, "swipeCancellation": true},
-  "requestRetry": {"maxRetries": 0, "delayMs": 250}
+  "cache": { "maxBytes": null },
+  "scheduling": { "maxConcurrentRequests": 4, "swipeCancellation": true },
+  "requestRetry": { "maxRetries": 0, "delayMs": 250 }
 }

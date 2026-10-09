@@ -53,15 +53,13 @@ export class BaseSFVRule {
       return null;
     }
 
-    const safeKbps = Number.isFinite(preferredKbps)
-      ? preferredKbps
-      : this.estimator.getSafeKbps();
+    const safeKbps = Number.isFinite(preferredKbps) ? preferredKbps : this.estimator.getSafeKbps();
 
     if (!Number.isFinite(safeKbps)) {
       return representations[0];
     }
 
-    return representations.filter((r) => r.bitrateKbps <= safeKbps).at(-1) ?? representations[0];
+    return representations.filter(r => r.bitrateKbps <= safeKbps).at(-1) ?? representations[0];
   }
 
   makeManifest(videoId) {
@@ -97,29 +95,34 @@ export class BaseSFVRule {
       segmentIndex
     };
   }
-
-
 }
 
 export function catalogVideo(context, videoId) {
-  return context.getMediaCatalog().videos.find((video) => video.videoId === videoId);
+  return context.getMediaCatalog().videos.find(video => video.videoId === videoId);
 }
 
 export function inFlight(context, match) {
-  return context.getInFlightRequests().some((request) =>
-    Object.entries(match).every(
-      ([key, value]) => request.resource?.[key] === value || request[key] === value
-    )
-  );
+  return context
+    .getInFlightRequests()
+    .some(request =>
+      Object.entries(match).every(
+        ([key, value]) => request.resource?.[key] === value || request[key] === value
+      )
+    );
 }
 
 export function cached(context, match) {
-  return context.getCachedResources().some((item) =>
-    Object.entries(match).every(([key, value]) => item.resource[key] === value)
-  );
+  return context
+    .getCachedResources()
+    .some(item => Object.entries(match).every(([key, value]) => item.resource[key] === value));
 }
 
 export function bufferedIndices(context, videoId) {
   const current = context.getCurrentVideo();
-  return current.videoId === videoId ? [...(current.playback.bufferedSegments ?? []), ...(current.playback.pendingAppendSegments ?? [])] : [];
+  return current.videoId === videoId
+    ? [
+        ...(current.playback.bufferedSegments ?? []),
+        ...(current.playback.pendingAppendSegments ?? [])
+      ]
+    : [];
 }

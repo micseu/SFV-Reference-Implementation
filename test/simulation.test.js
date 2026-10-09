@@ -40,7 +40,7 @@ function run(Rule, extra = {}) {
 test('B1 simulation never prefetches future media before swipe', () => {
   const out = run(SFVCurrentVideoRule);
   for (const event of out.events.filter(
-    (event) => event.eventType === 'REQUEST_STARTED' && event.resource?.resourceType === 'media'
+    event => event.eventType === 'REQUEST_STARTED' && event.resource?.resourceType === 'media'
   )) {
     const activeAt = event.time < 2.5 ? 'v1' : event.time < 5 ? 'v2' : 'v3';
     assert.equal(event.resource.videoId, activeAt);
@@ -56,7 +56,7 @@ test('B2 simulation performs future-video media prefetch', () => {
     }
   });
   const prefetched = out.events.filter(
-    (event) =>
+    event =>
       event.eventType === 'REQUEST_STARTED' &&
       event.resource?.resourceType === 'media' &&
       ((event.time < 2.5 && event.resource.videoId !== 'v1') ||
@@ -83,7 +83,10 @@ test('session record uses schema v2 data-wastage terminology', () => {
   assert.equal(out.sessionRecord.videos.length, 3);
   assert.ok('bytes_data_wastage' in out.sessionRecord.session_summary);
   assert.ok('data_wastage_by_reason' in out.sessionRecord.session_summary);
-  assert.equal(out.events.find((event) => event.eventType === 'SESSION_STARTED').scheduling.swipeCancellation, true);
+  assert.equal(
+    out.events.find(event => event.eventType === 'SESSION_STARTED').scheduling.swipeCancellation,
+    true
+  );
 });
 
 test('swipe cancellation defaults to engine-driven cancellation and reaches terminal CANCELLED state', () => {
@@ -98,18 +101,21 @@ test('swipe cancellation defaults to engine-driven cancellation and reaches term
     }
   }).run();
   const swipeCancels = out.events.filter(
-    (event) => event.eventType === 'REQUEST_ABORT_REQUESTED' && event.cause === 'SWIPE'
+    event => event.eventType === 'REQUEST_ABORT_REQUESTED' && event.cause === 'SWIPE'
   );
   assert.ok(swipeCancels.length > 0);
   const swipeDecision = out.events.find(
-    (event) => event.eventType === 'RULE_DECISION' && Math.abs(event.time - 0.1) < 1e-8
+    event => event.eventType === 'RULE_DECISION' && Math.abs(event.time - 0.1) < 1e-8
   );
   assert.ok(swipeDecision);
-  assert.equal(swipeDecision.actions.some((action) => action.actionType === 'ABORT'), false);
-  assert.ok(out.events.some((event) => event.eventType === 'REQUEST_CANCELLED'));
+  assert.equal(
+    swipeDecision.actions.some(action => action.actionType === 'ABORT'),
+    false
+  );
+  assert.ok(out.events.some(event => event.eventType === 'REQUEST_CANCELLED'));
   assert.ok(
     out.requests.some(
-      (request) =>
+      request =>
         request.state === 'CANCELLED' &&
         request.finalBytesDelivered >= request.bytesDeliveredAtAbort
     )
@@ -128,12 +134,24 @@ test('swipe data wastage includes cancellation-tail bytes delivered after the sw
     }
   }).run();
   const firstVideoMediaDelivered = out.requests
-    .filter((request) => request.resource?.videoId === 'v1' && request.resource?.resourceType === 'media')
-    .reduce((sum, request) => sum + (request.finalBytesDelivered ?? request.bytesDelivered ?? 0), 0);
-  const firstVideo = out.sessionRecord.videos.find((video) => video.video_id === 'v1');
+    .filter(
+      request => request.resource?.videoId === 'v1' && request.resource?.resourceType === 'media'
+    )
+    .reduce(
+      (sum, request) => sum + (request.finalBytesDelivered ?? request.bytesDelivered ?? 0),
+      0
+    );
+  const firstVideo = out.sessionRecord.videos.find(video => video.video_id === 'v1');
   assert.equal(firstVideo.watch_duration_s, 0);
   assert.equal(firstVideo.bytes_data_wastage, Math.round(firstVideoMediaDelivered));
-  assert.ok(out.requests.some((request) => request.resource?.videoId === 'v1' && request.state === 'CANCELLED' && request.finalBytesDelivered > request.bytesDeliveredAtAbort));
+  assert.ok(
+    out.requests.some(
+      request =>
+        request.resource?.videoId === 'v1' &&
+        request.state === 'CANCELLED' &&
+        request.finalBytesDelivered > request.bytesDeliveredAtAbort
+    )
+  );
 });
 
 test('swipe cancellation false leaves old-video requests uncancelled by the engine', () => {
@@ -150,15 +168,18 @@ test('swipe cancellation false leaves old-video requests uncancelled by the engi
   }).run();
   assert.equal(
     out.events.some(
-      (event) => event.eventType === 'REQUEST_ABORT_REQUESTED' && event.cause === 'SWIPE'
+      event => event.eventType === 'REQUEST_ABORT_REQUESTED' && event.cause === 'SWIPE'
     ),
     false
   );
-  assert.equal(out.events.some((event) => event.eventType === 'REQUEST_CANCELLED'), false);
+  assert.equal(
+    out.events.some(event => event.eventType === 'REQUEST_CANCELLED'),
+    false
+  );
   assert.equal(
     out.events
-      .filter((event) => event.eventType === 'RULE_DECISION')
-      .some((event) => event.actions.some((action) => action.actionType === 'ABORT')),
+      .filter(event => event.eventType === 'RULE_DECISION')
+      .some(event => event.actions.some(action => action.actionType === 'ABORT')),
     false
   );
 });
@@ -202,14 +223,14 @@ test('prefetch at simulation cutoff is unresolved data, not data wastage', () =>
   assert.ok(out.sessionRecord.session_summary.bytes_unresolved_at_cutoff > 0);
   assert.ok(
     out.sessionRecord.videos
-      .filter((video) => video.video_id !== 'v1')
-      .some((video) => video.bytes_media_delivered > 0)
+      .filter(video => video.video_id !== 'v1')
+      .some(video => video.bytes_media_delivered > 0)
   );
 });
 
 test('swipe converts downloaded but unconsumed bytes of the abandoned video into data wastage', () => {
   const out = run(SFVCurrentVideoRule, { maxTimeS: 3, swipeTimesS: [2.5] });
-  const firstVideo = out.sessionRecord.videos.find((video) => video.video_id === 'v1');
+  const firstVideo = out.sessionRecord.videos.find(video => video.video_id === 'v1');
   assert.ok(firstVideo.bytes_data_wastage > 0);
   assert.ok(firstVideo.data_wastage_by_reason.swipe > 0);
   assert.equal(firstVideo.data_wastage_by_reason.session_end, 0);

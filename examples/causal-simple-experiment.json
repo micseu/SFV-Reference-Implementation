@@ -3,11 +3,7 @@
   "experimentId": "causal-simple-review-b1",
   "content": {
     "datasetPath": "../fixtures/content/content.json",
-    "playlist": [
-      "v1",
-      "v2",
-      "v3"
-    ]
+    "playlist": ["v1", "v2", "v3"]
   },
   "network": {
     "capacityMbps": 8,
@@ -25,10 +21,7 @@
         "seed": 47,
         "maxTimeS": 19,
         "sessionDurationS": 19,
-        "swipeTimesS": [
-          6,
-          12
-        ],
+        "swipeTimesS": [6, 12],
         "scheduling": {
           "maxConcurrentRequests": 2
         },

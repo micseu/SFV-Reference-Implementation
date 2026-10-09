@@ -2,11 +2,7 @@
   "schemaVersion": 1,
   "scenarioId": "sfv-validation-b2-stalling-v1",
   "seed": 47,
-  "playlist": [
-    "v1",
-    "v2",
-    "v3"
-  ],
+  "playlist": ["v1", "v2", "v3"],
   "abr": {
     "name": "prefetch",
     "config": {
@@ -15,32 +11,14 @@
       "preload_segments_per_video": 2
     }
   },
-  "swipeTimesS": [
-    7,
-    15
-  ],
+  "swipeTimesS": [7, 15],
   "sessionDurationS": 22,
   "capacityTrace": [
-    [
-      0,
-      8
-    ],
-    [
-      1,
-      0.01
-    ],
-    [
-      6,
-      8
-    ],
-    [
-      8,
-      0.01
-    ],
-    [
-      14,
-      8
-    ]
+    [0, 8],
+    [1, 0.01],
+    [6, 8],
+    [8, 0.01],
+    [14, 8]
   ],
   "latencyMs": 40,
   "maxConcurrentRequests": 2,
@@ -55,10 +33,7 @@
   },
   "stallValidation": {
     "minRecoveredStalls": 2,
-    "expectedStallVideoIds": [
-      "v1",
-      "v2"
-    ],
+    "expectedStallVideoIds": ["v1", "v2"],
     "minStallDurationS": 0.5
   }
 }
