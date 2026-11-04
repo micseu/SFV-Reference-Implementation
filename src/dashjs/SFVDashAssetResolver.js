@@ -29,6 +29,13 @@ function formatTemplate(template, representationId, number, bandwidth, time) {
     }
   );
 }
+function frameRateFpsOf(frameRate) {
+  if (frameRate == null) return undefined;
+  const [numerator, denominator = 1] = String(frameRate).split('/').map(Number);
+  const fps = numerator / denominator;
+  return Number.isFinite(fps) && fps > 0 ? fps : undefined;
+}
+
 function segmentsOf(template, durationS) {
   if (!template || !template.SegmentTimeline?.S?.length)
     throw new Error('SegmentTimeline required');
@@ -108,6 +115,7 @@ export class SFVDashAssetResolver {
           width: rep.width,
           height: rep.height,
           codec: rep.codecs ?? set.codecs,
+          frameRateFps: frameRateFpsOf(rep.frameRate ?? set.frameRate),
           mimeType: rep.mimeType ?? set.mimeType ?? `${type}/mp4`,
           initUrl: url(template.initialization),
           segments: timeline.map(s => ({

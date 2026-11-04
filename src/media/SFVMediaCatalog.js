@@ -31,12 +31,13 @@ export class SFVMediaCatalog {
   getRepresentations(videoId, mediaType = 'video') {
     this.#assertAvailable(videoId);
     const reps = this.#video(videoId).representations[mediaType] ?? [];
-    return reps.map(({ id, bitrateKbps, width, height, codec }) => ({
+    return reps.map(({ id, bitrateKbps, width, height, codec, frameRateFps }) => ({
       id,
       bitrateKbps,
       width,
       height,
-      codec
+      codec,
+      frameRateFps
     }));
   }
   getSegments(videoId, mediaType = 'video', representationId) {
@@ -97,6 +98,7 @@ export class SFVMediaCatalog {
               width: r.width,
               height: r.height,
               codec: r.codec,
+              frameRateFps: r.frameRateFps,
               segments: r.segments.map(s => ({
                 index: s.index,
                 startS: s.startS,

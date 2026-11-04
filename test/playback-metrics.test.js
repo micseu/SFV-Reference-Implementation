@@ -235,3 +235,18 @@ test('prefetched and appended but never played segments contribute zero played d
   assert.equal(m.per_video.v2.representation_intervals.length, 0);
   close(m.per_video.v1.representation_played_duration_s['0'], 1);
 });
+
+test('representation intervals hold the bitrate, resolution, codec and frame rate', () => {
+  const m = calculatePlaybackMetrics({
+    dataset,
+    allEvents: [appended('v1', 0, '2', 0)],
+    playbackEvents: [started('v1', 0), sample('v1', 1, 1)],
+    endTimeS: 1
+  });
+  const interval = m.per_video.v1.representation_intervals[0];
+  assert.equal(interval.bitrate_kbps, 650);
+  assert.equal(interval.width, 360);
+  assert.equal(interval.height, 640);
+  assert.equal(interval.codec, 'avc1');
+  assert.equal(interval.frame_rate_fps, 30);
+});

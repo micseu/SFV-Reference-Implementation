@@ -11,9 +11,15 @@ function knownSegments(video) {
   return video.representations?.video?.[0]?.segments ?? [];
 }
 
-function bitrateFor(video, representationId) {
+function representationProperties(video, representationId) {
   const rep = video.representations?.video?.find(r => String(r.id) === String(representationId));
-  return finite(rep?.bitrateKbps) ? rep.bitrateKbps : null;
+  return {
+    bitrate_kbps: finite(rep?.bitrateKbps) ? rep.bitrateKbps : null,
+    width: finite(rep?.width) ? rep.width : null,
+    height: finite(rep?.height) ? rep.height : null,
+    codec: rep?.codec ?? null,
+    frame_rate_fps: finite(rep?.frameRateFps) ? rep.frameRateFps : null
+  };
 }
 
 function appendMap(allEvents) {
@@ -87,7 +93,7 @@ function progressForVideo(video, playbackEvents, assignments) {
         intervals.push({
           video_id: video.videoId,
           representation_id: representationId,
-          bitrate_kbps: bitrateFor(video, representationId),
+          ...representationProperties(video, representationId),
           segment_index: seg.index,
           start_at_s: startTime,
           end_at_s: endTime,
