@@ -1,6 +1,6 @@
 export class SFVRulesContext {
-  constructor({time,session,playlist,currentVideoIndex,catalog,store,requests,playback,networkHistory,userHistory,playbackHistory}) {
-    Object.assign(this,{_time:time,_session:session,_playlist:playlist,_currentVideoIndex:currentVideoIndex,_catalog:catalog,_store:store,_requests:requests,_playback:playback,_networkHistory:networkHistory,_userHistory:userHistory,_playbackHistory:playbackHistory});
+  constructor({time,session,playlist,currentVideoIndex,catalog,store,requests,playback,networkHistory,userHistory,playbackHistory,cspFields=null}) {
+    Object.assign(this,{_time:time,_session:session,_playlist:playlist,_currentVideoIndex:currentVideoIndex,_catalog:catalog,_store:store,_requests:requests,_playback:playback,_networkHistory:networkHistory,_userHistory:userHistory,_playbackHistory:playbackHistory,_cspFields:cspFields});
     Object.freeze(this);
   }
   getCurrentTime(){return this._time;}
@@ -14,4 +14,6 @@ export class SFVRulesContext {
   getUserHistory(){return structuredClone(this._userHistory);}
   getPlaybackHistory(){return structuredClone(this._playbackHistory);}
   getBufferRanges(videoId){ if(videoId!==this._playback.videoId) return []; return structuredClone(this._playback.bufferRanges); }
+  /** Latest CSP snapshot from collaboration IPC / live adapter; ``null`` at L0 or before first update. */
+  getCspFields(){ return this._cspFields == null ? null : structuredClone(this._cspFields); }
 }

@@ -13,6 +13,8 @@ import {SFVAbrController} from '../core/SFVAbrController.js';
 import {normalizeSchedulingConfig} from '../core/SFVConfig.js';
 import {ACTION,MANIFEST_STATE} from '../core/constants.js';
 import {SFVSessionRecordBuilder} from '../output/SFVSessionRecordBuilder.js';
+import {cspFieldsEqual,normalizeCspFields} from '../core/SFVCspFields.js';
+import {buildCapReportFromSession} from '../core/SFVCapReport.js';
 
 /** One browser feed/UE; B1 and B2 run unmodified against the same rules context as DES. */
 export class SFVBrowserController {
@@ -52,9 +54,26 @@ export class SFVBrowserController {
     this.autoPlayAttempted=new Set();
     this.lastSamplePosition=null;this.lastSampleVideoId=null;this.seekPending=false;
     this.listeners=[];
+    this.cspFields=null;
     this.#bindPlaybackEvents();
   }
   time(){return this.now()-this.epochStart;}
+
+  applyCspUpdate(rawFields,timeS=this.time()) {
+    if (!Number.isFinite(timeS) || timeS < 0) throw new TypeError('applyCspUpdate: invalid time_s');
+    const next=normalizeCspFields(rawFields);
+    const changed=!cspFieldsEqual(this.cspFields,next);
+    this.cspFields=next;
+    if (!changed) return;
+    this.#observe({time:timeS,eventType:'CSP_TELEMETRY_UPDATED',cspFields:next,triggerDecision:false});
+  }
+
+  getCspFields(){return this.cspFields==null?null:structuredClone(this.cspFields);}
+
+  buildCapReport(timeS=this.time()){
+    return buildCapReportFromSession({timeS,playback:this.playback,userEvents:this.userEvents});
+  }
+
   #observe(event){
     if(this.stopped)return;
     const e=this.abr.observe({...event,time:event.time ?? this.time()});
@@ -94,7 +113,7 @@ export class SFVBrowserController {
       // Avoid cloning the entire append-only history on every decision epoch.
       // SFVRulesContext.getNetworkHistory() still clones when the rule requests it.
       networkHistory:this.networkEvents,
-      userHistory:this.userEvents,playbackHistory:this.playbackEvents});
+      userHistory:this.userEvents,playbackHistory:this.playbackEvents,cspFields:this.cspFields});
   }
   #runtimeView(){return {requests:this.requestManager.list(),store:this.store.list(),
     catalogState:id=>this.catalog.getManifestState(id)};}

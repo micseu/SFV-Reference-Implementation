@@ -14,6 +14,8 @@ import { SFVSessionRecordBuilder } from '../output/SFVSessionRecordBuilder.js';
 import { normalizeSchedulingConfig } from '../core/SFVConfig.js';
 import { resolveSessionTiming } from './SFVSessionTiming.js';
 import { resolveUserInteractions, resolveCapacityGenerator } from './generators/SFVGenerators.js';
+import { cspFieldsEqual, normalizeCspFields } from '../core/SFVCspFields.js';
+import { buildCapReportFromSession } from '../core/SFVCapReport.js';
 
 export class SFVSimulationController {
   constructor({ dataset, rule, config = {}, transport = null, requestIdPrefix = "r" }) {
@@ -103,6 +105,7 @@ export class SFVSimulationController {
     this.sampleIndex = 0;
     this.sampleStart = null;
     this.lastObservedPlaybackPosition = 0;
+    this.cspFields = null;
 
     this.requestManager = new SFVRequestManager({
       catalog: this.catalog,
@@ -221,6 +224,37 @@ export class SFVSimulationController {
 
   applyNetworkEvent(event) {
     this.requestManager.processTransportEvent(event);
+  }
+
+  /**
+   * Apply a filtered CSP snapshot from pilot ``network_step.collaboration`` (offline harness
+   * or future live adapter). Rules read via ``getCspFields()``; policy use is not enabled yet.
+   */
+  applyCspUpdate(rawFields, timeS) {
+    if (!Number.isFinite(timeS) || timeS < 0) throw new TypeError('applyCspUpdate: invalid time_s');
+    const next = normalizeCspFields(rawFields);
+    const changed = !cspFieldsEqual(this.cspFields, next);
+    this.cspFields = next;
+    if (!changed) return;
+    this.abr.observe({
+      time: timeS,
+      eventType: 'CSP_TELEMETRY_UPDATED',
+      cspFields: next,
+      triggerDecision: false,
+    });
+  }
+
+  getCspFields() {
+    return this.cspFields == null ? null : structuredClone(this.cspFields);
+  }
+
+  /** VQEG ``cap_reports`` payload for one UE at ``timeS`` (pilot co-sim: per network step). */
+  buildCapReport(timeS = this.clock.now()) {
+    return buildCapReportFromSession({
+      timeS,
+      playback: this.playback,
+      userEvents: this.userEvents,
+    });
   }
 
   stopQueuedRequests(timeS, sessionEnded) {
@@ -486,7 +520,8 @@ export class SFVSimulationController {
         .list()
         .filter((event) => event.eventType.startsWith('REQUEST_')),
       userHistory: this.userEvents,
-      playbackHistory: this.playbackEvents
+      playbackHistory: this.playbackEvents,
+      cspFields: this.cspFields,
     });
   }
 
