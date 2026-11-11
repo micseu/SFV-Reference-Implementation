@@ -10,7 +10,8 @@ export class SFVRulesContext {
     playback,
     networkHistory,
     userHistory,
-    playbackHistory
+    playbackHistory,
+    cspFields = null
   }) {
     Object.assign(this, {
       _time: time,
@@ -23,7 +24,8 @@ export class SFVRulesContext {
       _playback: playback,
       _networkHistory: networkHistory,
       _userHistory: userHistory,
-      _playbackHistory: playbackHistory
+      _playbackHistory: playbackHistory,
+      _cspFields: cspFields
     });
     Object.freeze(this);
   }
@@ -69,5 +71,9 @@ export class SFVRulesContext {
   getBufferRanges(videoId) {
     if (videoId !== this._playback.videoId) return [];
     return structuredClone(this._playback.bufferRanges);
+  }
+  /** Latest CSP snapshot from collaboration IPC / live adapter; ``null`` at L0 or before first update. */
+  getCspFields() {
+    return this._cspFields == null ? null : structuredClone(this._cspFields);
   }
 }
