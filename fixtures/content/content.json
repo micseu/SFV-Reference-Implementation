@@ -15,6 +15,7 @@
             "width": 180,
             "height": 320,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v1/init-0.m4s",
             "initBytes": 826,
             "segments": [
@@ -47,6 +48,7 @@
             "width": 270,
             "height": 480,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v1/init-1.m4s",
             "initBytes": 826,
             "segments": [
@@ -79,6 +81,7 @@
             "width": 360,
             "height": 640,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v1/init-2.m4s",
             "initBytes": 828,
             "segments": [
@@ -154,6 +157,7 @@
             "width": 180,
             "height": 320,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v2/init-0.m4s",
             "initBytes": 826,
             "segments": [
@@ -186,6 +190,7 @@
             "width": 270,
             "height": 480,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v2/init-1.m4s",
             "initBytes": 826,
             "segments": [
@@ -218,6 +223,7 @@
             "width": 360,
             "height": 640,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v2/init-2.m4s",
             "initBytes": 828,
             "segments": [
@@ -293,6 +299,7 @@
             "width": 180,
             "height": 320,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v3/init-0.m4s",
             "initBytes": 826,
             "segments": [
@@ -325,6 +332,7 @@
             "width": 270,
             "height": 480,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v3/init-1.m4s",
             "initBytes": 826,
             "segments": [
@@ -357,6 +365,7 @@
             "width": 360,
             "height": 640,
             "codec": "avc1",
+            "frameRateFps": 30,
             "initUrl": "/media/v3/init-2.m4s",
             "initBytes": 828,
             "segments": [

@@ -56,3 +56,21 @@ test('manifest directory rather than page origin is the base URI', () => {
   const result = resolver.parse('v42', new TextEncoder().encode('<MPD/>'), url);
   assert.equal(result.dashManifest.baseUri, 'https://cdn.example.test/feed/item42/');
 });
+
+test('frame rate comes from the adaptation set or representation', () => {
+  const url = 'https://cdn.example.test/feed/item42/index.mpd';
+  const parseWithFrameRate = (setFrameRate, representationFrameRate) => {
+    const mpd = fakeDashParser();
+    const set = mpd.Period[0].AdaptationSet[0];
+    set.frameRate = setFrameRate;
+    set.Representation[0].frameRate = representationFrameRate;
+    const resolver = new SFVDashAssetResolver({ parseDashManifest: () => mpd });
+    const result = resolver.parse('v42', new TextEncoder().encode('<MPD/>'), url);
+    return result.video.representations.video[0].frameRateFps;
+  };
+  assert.equal(parseWithFrameRate('30/1'), 30);
+  assert.equal(parseWithFrameRate(30), 30);
+  assert.equal(parseWithFrameRate('30/1', '25'), 25);
+  assert.ok(Math.abs(parseWithFrameRate('30000/1001') - 29.97) < 0.01);
+  assert.equal(parseWithFrameRate(), undefined);
+});
