@@ -22,9 +22,12 @@ for (const video of dataset.videos) {
     errors.push(`${video.videoId}: missing video-only MPD`);
   } else {
     const videoMpd = fs.readFileSync(videoOnly, 'utf8');
-    if (/contentType=[\"']audio[\"']/.test(videoMpd) ||
-        !/contentType=[\"']video[\"']/.test(videoMpd) ||
-        (videoMpd.match(/<Representation /g) ?? []).length !== (video.representations.video ?? []).length) {
+    if (
+      /contentType=["']audio["']/.test(videoMpd) ||
+      !/contentType=["']video["']/.test(videoMpd) ||
+      (videoMpd.match(/<Representation /g) ?? []).length !==
+        (video.representations.video ?? []).length
+    ) {
       errors.push(`${video.videoId}: invalid video-only MPD adaptation sets`);
     }
   }
@@ -58,13 +61,9 @@ for (const video of dataset.videos) {
       for (const segment of representation.segments) {
         const segmentPath = path.join(mediaDir, path.basename(segment.url));
         if (!fs.existsSync(segmentPath)) {
-          errors.push(
-            `${video.videoId}/${representation.id}/${segment.index}: missing segment`
-          );
+          errors.push(`${video.videoId}/${representation.id}/${segment.index}: missing segment`);
         } else if (fs.statSync(segmentPath).size !== segment.bytes) {
-          errors.push(
-            `${video.videoId}/${representation.id}/${segment.index}: byte size mismatch`
-          );
+          errors.push(`${video.videoId}/${representation.id}/${segment.index}: byte size mismatch`);
         }
       }
     }

@@ -11,9 +11,9 @@ test('buildCapReportFromSession matches pilot co-sim snapshot fields', () => {
       videoId: 'v1',
       positionS: 2,
       stalled: true,
-      bufferEnd: () => 5,
+      bufferEnd: () => 5
     },
-    userEvents: [{ eventType: 'SWIPE', time: 0.5 }],
+    userEvents: [{ eventType: 'SWIPE', time: 0.5 }]
   });
   assert.equal(report.time_s, 1);
   assert.equal(report.is_stalled, true);
@@ -24,15 +24,19 @@ test('buildCapReportFromSession matches pilot co-sim snapshot fields', () => {
 
 test('SFVSimulationController.buildCapReport delegates to core helper', () => {
   const dataset = {
-    videos: [{
-      videoId: 'v1',
-      representations: { video: [{ id: 'r0', bitrateKbps: 500, segments: [{ index: 0, startS: 0, durationS: 5 }] }] },
-    }],
+    videos: [
+      {
+        videoId: 'v1',
+        representations: {
+          video: [{ id: 'r0', bitrateKbps: 500, segments: [{ index: 0, startS: 0, durationS: 5 }] }]
+        }
+      }
+    ]
   };
   const controller = new SFVSimulationController({
     dataset,
     rule: new SFVCurrentVideoRule(),
-    config: { sessionStartTimeS: 0, sessionEndTimeS: 6, swipeTimesS: [] },
+    config: { sessionStartTimeS: 0, sessionEndTimeS: 6, swipeTimesS: [] }
   });
   controller.startAt(0);
   const report = controller.buildCapReport(0.01);

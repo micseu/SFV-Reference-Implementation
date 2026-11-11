@@ -20,18 +20,30 @@ export class SFVSimulationRunner {
 
   run() {
     const networkConfig = this.networkConfig ?? {
-      capacityMbps: this.sessions[0].config?.transport?.capacityMbps ??
-        this.timingDefaults.transport?.capacityMbps ?? 8,
-      latencyMs: this.sessions[0].config?.transport?.latencyMs ??
-        this.timingDefaults.transport?.latencyMs ?? 50,
+      capacityMbps:
+        this.sessions[0].config?.transport?.capacityMbps ??
+        this.timingDefaults.transport?.capacityMbps ??
+        8,
+      latencyMs:
+        this.sessions[0].config?.transport?.latencyMs ??
+        this.timingDefaults.transport?.latencyMs ??
+        50,
       cancelTailBytes: this.sessions[0].config?.transport?.cancelTailBytes ?? 0,
       cancelTailMs: this.sessions[0].config?.transport?.cancelTailMs ?? 0
     };
-    if (networkConfig.capacityGenerator && (networkConfig.capacityMbps !== undefined || networkConfig.capacityTrace !== undefined)) {
-      throw new TypeError('capacityGenerator cannot be combined with capacityMbps or capacityTrace');
+    if (
+      networkConfig.capacityGenerator &&
+      (networkConfig.capacityMbps !== undefined || networkConfig.capacityTrace !== undefined)
+    ) {
+      throw new TypeError(
+        'capacityGenerator cannot be combined with capacityMbps or capacityTrace'
+      );
     }
     const resolvedNetwork = networkConfig.capacityGenerator
-      ? {...networkConfig, capacityTrace: resolveCapacityGenerator(networkConfig.capacityGenerator).trace}
+      ? {
+          ...networkConfig,
+          capacityTrace: resolveCapacityGenerator(networkConfig.capacityGenerator).trace
+        }
       : networkConfig;
     delete resolvedNetwork.capacityGenerator;
     const backend = new SFVSharedNetworkTransport(resolvedNetwork);
@@ -45,13 +57,17 @@ export class SFVSimulationRunner {
         ...this.timingDefaults,
         ...session.config,
         networkBackend: 'shared_capacity',
-        transportGenerator: networkConfig.capacityGenerator ? structuredClone(networkConfig.capacityGenerator) : null,
+        transportGenerator: networkConfig.capacityGenerator
+          ? structuredClone(networkConfig.capacityGenerator)
+          : null,
         transport: structuredClone(resolvedNetwork)
       };
-      const explicitStart = config.sessionStartTimeS !== undefined ||
-        config.sessionStartWindowS !== undefined;
-      const explicitEnd = config.sessionEndTimeS !== undefined ||
-        config.sessionDurationS !== undefined || config.sessionDurationRangeS !== undefined;
+      const explicitStart =
+        config.sessionStartTimeS !== undefined || config.sessionStartWindowS !== undefined;
+      const explicitEnd =
+        config.sessionEndTimeS !== undefined ||
+        config.sessionDurationS !== undefined ||
+        config.sessionDurationRangeS !== undefined;
       if (this.sessions.length > 1 && !explicitStart) {
         config.sessionStartWindowS = [0, Math.min(5, (config.maxTimeS ?? 30) * 0.2)];
       }
@@ -60,11 +76,19 @@ export class SFVSimulationRunner {
         config.sessionDurationRangeS = [horizon * 0.35, horizon * 0.6];
       }
       const controller = new SFVSimulationController({
-        dataset: this.dataset, rule: session.ruleFactory(), config,
-        transport: backend.forUE(index), requestIdPrefix: `ue${index}-r`
+        dataset: this.dataset,
+        rule: session.ruleFactory(),
+        config,
+        transport: backend.forUE(index),
+        requestIdPrefix: `ue${index}-r`
       });
-      return {controller, started: false, done: false, result: null,
-        endS: Math.min(controller.maxTimeS, controller.sessionEndTimeS)};
+      return {
+        controller,
+        started: false,
+        done: false,
+        result: null,
+        endS: Math.min(controller.maxTimeS, controller.sessionEndTimeS)
+      };
     });
     // The global network and every UE run on one strictly monotonic experiment clock.
     let iterations = 0;
@@ -78,8 +102,12 @@ export class SFVSimulationRunner {
         if (!state.started) {
           if (c.sessionStartTimeS < state.endS - EPS) next = Math.min(next, c.sessionStartTimeS);
         } else {
-          next = Math.min(next, c.nextSwipeTime(), c.nextPlaybackEventTime(),
-            c.requestManager.nextRetryTime());
+          next = Math.min(
+            next,
+            c.nextSwipeTime(),
+            c.nextPlaybackEventTime(),
+            c.requestManager.nextRetryTime()
+          );
         }
       }
       // Immediate APPEND observations cause a fresh logical micro-epoch at the
@@ -106,8 +134,10 @@ export class SFVSimulationRunner {
       }
       for (const state of states) {
         if (state.done || state.started) continue;
-        if (state.controller.sessionStartTimeS <= next + EPS &&
-          state.controller.sessionStartTimeS < state.endS - EPS) {
+        if (
+          state.controller.sessionStartTimeS <= next + EPS &&
+          state.controller.sessionStartTimeS < state.endS - EPS
+        ) {
           state.controller.startAt(next);
           state.started = true;
         }
@@ -119,8 +149,10 @@ export class SFVSimulationRunner {
       }
       for (const [index, state] of states.entries()) {
         if (!state.done && state.endS <= next + EPS) {
-          const ended = state.controller.sessionEndTimeS <= state.controller.maxTimeS + EPS &&
-            Math.abs(state.endS - state.controller.sessionEndTimeS) <= EPS && state.started;
+          const ended =
+            state.controller.sessionEndTimeS <= state.controller.maxTimeS + EPS &&
+            Math.abs(state.endS - state.controller.sessionEndTimeS) <= EPS &&
+            state.started;
           // Include terminal cancellation in a real session end's accounting.
           state.controller.stopQueuedRequests(next, ended);
           if (ended) {
@@ -144,8 +176,20 @@ export class SFVSimulationRunner {
       capacityTrace: backend.trace.map(entry => [...entry]),
       events: structuredClone(backend.eventLog),
       requests: backend.list(),
-      concurrency: {scope:'per_ue',sessions:states.map((state,index)=>({ue_index:index,maxConcurrentRequests:Number.isFinite(state.controller.config.scheduling.maxConcurrentRequests)?state.controller.config.scheduling.maxConcurrentRequests:null}))},
-      capacityGenerator:networkConfig.capacityGenerator ? structuredClone(networkConfig.capacityGenerator) : null,
+      concurrency: {
+        scope: 'per_ue',
+        sessions: states.map((state, index) => ({
+          ue_index: index,
+          maxConcurrentRequests: Number.isFinite(
+            state.controller.config.scheduling.maxConcurrentRequests
+          )
+            ? state.controller.config.scheduling.maxConcurrentRequests
+            : null
+        }))
+      },
+      capacityGenerator: networkConfig.capacityGenerator
+        ? structuredClone(networkConfig.capacityGenerator)
+        : null,
       simulatedUntilS: backend.time
     };
     return states.map(state => state.result);

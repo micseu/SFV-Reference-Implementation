@@ -58,6 +58,7 @@ export async function listenFixtureServer({ port = 0, host = '127.0.0.1' } = {})
   return {
     server,
     origin: `http://${host}:${address.port}`,
-    close: () => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()))
+    close: () =>
+      new Promise((resolve, reject) => server.close(error => (error ? reject(error) : resolve())))
   };
 }

@@ -22,9 +22,13 @@ function random01(seed) {
 }
 
 function range(value, name, allowZero = true) {
-  if (!Array.isArray(value) || value.length !== 2 ||
+  if (
+    !Array.isArray(value) ||
+    value.length !== 2 ||
     value.some(v => !Number.isFinite(v) || v < 0) ||
-    value[0] > value[1] || (!allowZero && value[0] <= 0)) {
+    value[0] > value[1] ||
+    (!allowZero && value[0] <= 0)
+  ) {
     throw new TypeError(`${name} must be [non-negative minimum, maximum] in seconds`);
   }
   return value;
@@ -32,7 +36,9 @@ function range(value, name, allowZero = true) {
 
 function positive(value, name, allowZero = false) {
   if (!Number.isFinite(value) || value < 0 || (!allowZero && value === 0)) {
-    throw new TypeError(`${name} must be a ${allowZero ? 'non-negative' : 'positive'} finite number`);
+    throw new TypeError(
+      `${name} must be a ${allowZero ? 'non-negative' : 'positive'} finite number`
+    );
   }
   return value;
 }
@@ -44,23 +50,32 @@ function positive(value, name, allowZero = false) {
  * An omitted end means experiment cutoff, not a user session end.
  */
 export function resolveSessionTiming(config = {}) {
-  const startModes = [config.sessionStartTimeS, config.sessionStartWindowS]
-    .filter(v => v !== undefined && v !== null);
+  const startModes = [config.sessionStartTimeS, config.sessionStartWindowS].filter(
+    v => v !== undefined && v !== null
+  );
   if (startModes.length > 1) {
     throw new TypeError('Choose sessionStartTimeS or sessionStartWindowS, not both');
   }
-  const endModes = [config.sessionEndTimeS, config.sessionDurationS, config.sessionDurationRangeS]
-    .filter(v => v !== undefined && v !== null);
+  const endModes = [
+    config.sessionEndTimeS,
+    config.sessionDurationS,
+    config.sessionDurationRangeS
+  ].filter(v => v !== undefined && v !== null);
   if (endModes.length > 1) {
-    throw new TypeError('Choose exactly one of sessionEndTimeS, sessionDurationS or sessionDurationRangeS');
+    throw new TypeError(
+      'Choose exactly one of sessionEndTimeS, sessionDurationS or sessionDurationRangeS'
+    );
   }
-  const timingSeed = hash(`${config.seed ?? 1}|${config.ueId ?? 0}|${config.sessionId ?? ''}|session-timing`);
-  const startTimeS = config.sessionStartWindowS !== undefined
-    ? (() => {
-      const [min, max] = range(config.sessionStartWindowS, 'sessionStartWindowS');
-      return min + (max - min) * random01(timingSeed);
-    })()
-    : positive(config.sessionStartTimeS ?? 0, 'sessionStartTimeS', true);
+  const timingSeed = hash(
+    `${config.seed ?? 1}|${config.ueId ?? 0}|${config.sessionId ?? ''}|session-timing`
+  );
+  const startTimeS =
+    config.sessionStartWindowS !== undefined
+      ? (() => {
+          const [min, max] = range(config.sessionStartWindowS, 'sessionStartWindowS');
+          return min + (max - min) * random01(timingSeed);
+        })()
+      : positive(config.sessionStartTimeS ?? 0, 'sessionStartTimeS', true);
   let endTimeS = Infinity;
   let endMode = 'experiment_cutoff';
   if (config.sessionEndTimeS !== undefined && config.sessionEndTimeS !== null) {
@@ -77,6 +92,11 @@ export function resolveSessionTiming(config = {}) {
   if (endTimeS <= startTimeS) {
     throw new RangeError('Session end must be strictly after session start');
   }
-  return {startTimeS, endTimeS, startMode: config.sessionStartWindowS !== undefined
-    ? 'sampled_start' : 'fixed_start', endMode, timingSeed};
+  return {
+    startTimeS,
+    endTimeS,
+    startMode: config.sessionStartWindowS !== undefined ? 'sampled_start' : 'fixed_start',
+    endMode,
+    timingSeed
+  };
 }

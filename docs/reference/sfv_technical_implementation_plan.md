@@ -26,7 +26,7 @@ npm run validate:scenarios:stall
 
 See [Getting started](../GETTING_STARTED.md) for the dash.js checkout,
 one-time patch/build and browser UI. Run real browser scenarios and export
-*full session JSON* before invoking replay and supplementary comparisons as
+_full session JSON_ before invoking replay and supplementary comparisons as
 explained in [Validation](../VALIDATION.md). Output is under ignored `out/`;
 record input JSON, seeds, timing profile, browser/OS and code revision alongside
 stored results. The small included fixtures support baseline runs; never commit

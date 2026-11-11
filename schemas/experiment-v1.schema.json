@@ -3,11 +3,7 @@
   "$id": "sfv-experiment-v1",
   "title": "SFV Experiment Configuration v1",
   "type": "object",
-  "required": [
-    "schemaVersion",
-    "experimentId",
-    "sessions"
-  ],
+  "required": ["schemaVersion", "experimentId", "sessions"],
   "properties": {
     "schemaVersion": {
       "const": 1
@@ -63,11 +59,7 @@
                 "type": "string"
               },
               "resourceType": {
-                "enum": [
-                  "manifest",
-                  "init",
-                  "media"
-                ]
+                "enum": ["manifest", "init", "media"]
               },
               "representationId": {
                 "type": "string"
@@ -96,21 +88,14 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": [
-          "abr"
-        ],
+        "required": ["abr"],
         "properties": {
           "abr": {
             "type": "object",
-            "required": [
-              "name"
-            ],
+            "required": ["name"],
             "properties": {
               "name": {
-                "enum": [
-                  "current",
-                  "prefetch"
-                ]
+                "enum": ["current", "prefetch"]
               },
               "config": {
                 "type": "object"

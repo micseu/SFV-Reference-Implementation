@@ -18,7 +18,7 @@ request-count cap. B1 downloads only resources for the active video. B2 can
 prefetch future-video segments within aggregate MPS and per-video PSPV budgets.
 
 `SFVSegmentStore` is distinct from both HTTP cache and the MSE playback buffer.
-An optional storage limit is applied *after* successful download; lifecycle
+An optional storage limit is applied _after_ successful download; lifecycle
 cleanup removes entries no longer needed. A new browser session resets the
 logical store and active playback slot. SFV HTTP requests use `no-store`, and
 the UI attempts selective CacheStorage cleanup rather than claiming a global
@@ -37,7 +37,7 @@ The simulator owns its virtual clock. Optional `causal-simple` timing models
 slot readiness, serialized append, playback readiness and periodic playback
 observations using separately configurable deterministic assumptions. The
 legacy virtual-clock behavior remains available to reproduce existing scenario
-inputs. `browser-platform-trace` is an *explicitly conditional* replay mode:
+inputs. `browser-platform-trace` is an _explicitly conditional_ replay mode:
 recorded platform timing can be supplied, but throughput and ABR decisions are
 recomputed; it is not independent timing prediction. `experiment-v1` and other
 `v1` data schema suffixes are independent of the software release number.

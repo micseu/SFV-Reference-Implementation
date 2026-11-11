@@ -8,16 +8,20 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "lint": "node scripts/lint.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "simulate:b1": "node scripts/run-simulation.mjs current",
     "simulate:b2": "node scripts/run-simulation.mjs prefetch",
     "simulate:multi-ue": "node scripts/run-multi-ue.mjs",
-    "verify": "npm run lint && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
+    "verify": "npm run lint && npm run format:check && npm run validate:fixtures && npm run validate:patch && npm test && npm run simulate:b1 && npm run simulate:b2 && npm run simulate:multi-ue && npm run simulate:experiment && npm run simulate:generators && npm run simulate:cache-fault",
     "validate:fixtures": "node scripts/validate-fixtures.mjs",
     "validate:patch": "node scripts/validate-patch.mjs",
-    "serve:browser": "node scripts/serve-browser.mjs",
+    "serve:browser": "node web/server.mjs",
     "check:dashjs": "node scripts/prepare-dashjs.mjs ../dash.js --check",
     "verify:dashjs-integration": "node scripts/prepare-dashjs.mjs ../dash.js --verify-installed",
+    "install:dashjs-bundle": "node scripts/prepare-dashjs.mjs ../dash.js --install-bundle",
     "simulate:experiment": "node scripts/run-experiment.mjs examples/shared-network-experiment.json out/shared-experiment",
     "simulate:generators": "node scripts/run-experiment.mjs examples/generators-experiment.json out/generators-experiment",
     "simulate:cache-fault": "node scripts/run-experiment.mjs examples/cache-fault-experiment.json out/cache-fault-experiment",
@@ -38,5 +42,16 @@
   },
   "license": "BSD-3-Clause",
   "main": "./src/index.js",
-  "exports": "./src/index.js"
+  "exports": "./src/index.js",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9"
+  }
 }

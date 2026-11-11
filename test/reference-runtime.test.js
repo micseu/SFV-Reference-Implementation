@@ -7,8 +7,13 @@ function bridgeSpy() {
   const calls = [];
   return {
     calls,
-    async initialize(options) { calls.push(['initialize', options]); },
-    async swipeNext(options) { calls.push(['swipeNext', options]); return options; }
+    async initialize(options) {
+      calls.push(['initialize', options]);
+    },
+    async swipeNext(options) {
+      calls.push(['swipeNext', options]);
+      return options;
+    }
   };
 }
 
@@ -34,5 +39,8 @@ test('reference runtime defaults swipe cancellation to true', async () => {
 test('reference runtime rejects non-boolean swipe cancellation', async () => {
   const bridge = bridgeSpy();
   const runtime = new SFVReferenceRuntime({ bridge, rule: new SFVCurrentVideoRule() });
-  await assert.rejects(runtime.initialize({ scheduling: { swipeCancellation: 1 } }), /must be true or false/);
+  await assert.rejects(
+    runtime.initialize({ scheduling: { swipeCancellation: 1 } }),
+    /must be true or false/
+  );
 });

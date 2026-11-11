@@ -6,7 +6,7 @@ const FIELD_KEYS = [
   'achieved_throughput_mbps',
   'rtt_ms',
   'loss_rate',
-  'congestion_rate',
+  'congestion_rate'
 ];
 
 export function normalizeCspFields(raw) {
@@ -32,5 +32,5 @@ export function normalizeCspFields(raw) {
 export function cspFieldsEqual(a, b) {
   if (a === b) return true;
   if (a == null || b == null) return false;
-  return FIELD_KEYS.every((key) => a[key] === b[key]);
+  return FIELD_KEYS.every(key => a[key] === b[key]);
 }

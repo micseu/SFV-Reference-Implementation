@@ -10,8 +10,7 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
   reset(config = {}, seed = 1) {
     super.reset(config, seed);
     const mps = config.max_preload_segments ?? config.maxPreloadSegments ?? 6;
-    const pspv =
-      config.preload_segments_per_video ?? config.preloadSegmentsPerVideo ?? 2;
+    const pspv = config.preload_segments_per_video ?? config.preloadSegmentsPerVideo ?? 2;
 
     if (!Number.isInteger(mps) || mps < 0) {
       throw new Error('max_preload_segments must be a non-negative integer');
@@ -25,26 +24,15 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
     const base = super.getSwitchRequest(context);
     const actions = [...base.actions];
     const playlist = context.getPlaylistState();
-    const mps =
-      this.config.max_preload_segments ?? this.config.maxPreloadSegments ?? 6;
-    const pspv =
-      this.config.preload_segments_per_video ??
-      this.config.preloadSegmentsPerVideo ??
-      2;
+    const mps = this.config.max_preload_segments ?? this.config.maxPreloadSegments ?? 6;
+    const pspv = this.config.preload_segments_per_video ?? this.config.preloadSegmentsPerVideo ?? 2;
 
-    if (
-      mps <= 0 ||
-      pspv <= 0 ||
-      playlist.currentVideoIndex >= playlist.items.length - 1
-    ) {
+    if (mps <= 0 || pspv <= 0 || playlist.currentVideoIndex >= playlist.items.length - 1) {
       return { rule: this.name, reason: 'prefetch-disabled-or-end', actions };
     }
 
     const futureItems = playlist.items.slice(playlist.currentVideoIndex + 1);
-    const manifestLookahead = Math.min(
-      futureItems.length,
-      Math.max(1, Math.ceil(mps / pspv))
-    );
+    const manifestLookahead = Math.min(futureItems.length, Math.max(1, Math.ceil(mps / pspv)));
     const candidates = futureItems.slice(0, manifestLookahead);
 
     for (const item of candidates) {
@@ -52,8 +40,7 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
       if (
         video?.manifestState === 'UNKNOWN' &&
         !actions.some(
-          (action) =>
-            action.videoId === item.videoId && action.actionType === 'FETCH_MANIFEST'
+          action => action.videoId === item.videoId && action.actionType === 'FETCH_MANIFEST'
         )
       ) {
         actions.push(this.makeManifest(item.videoId));
@@ -64,13 +51,12 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
     for (const item of futureItems) {
       occupied += context
         .getCachedResources({ videoId: item.videoId })
-        .filter((item) => item.resource.resourceType === 'media').length;
+        .filter(item => item.resource.resourceType === 'media').length;
       occupied += context
         .getInFlightRequests()
         .filter(
-          (request) =>
-            request.resource?.videoId === item.videoId &&
-            request.resource?.resourceType === 'media'
+          request =>
+            request.resource?.videoId === item.videoId && request.resource?.resourceType === 'media'
         ).length;
     }
 
@@ -99,8 +85,7 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
         !cached(context, initMatch) &&
         !inFlight(context, initMatch) &&
         !actions.some(
-          (action) =>
-            action.videoId === video.videoId && action.actionType === 'FETCH_INIT'
+          action => action.videoId === video.videoId && action.actionType === 'FETCH_INIT'
         )
       ) {
         actions.push(this.makeInit(video.videoId, representation));
@@ -109,11 +94,11 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
       let already =
         context
           .getCachedResources({ videoId: video.videoId })
-          .filter((item) => item.resource.resourceType === 'media').length +
+          .filter(item => item.resource.resourceType === 'media').length +
         context
           .getInFlightRequests()
           .filter(
-            (request) =>
+            request =>
               request.resource?.videoId === video.videoId &&
               request.resource?.resourceType === 'media'
           ).length;
@@ -129,7 +114,7 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
           segmentIndex: segment.index
         };
         const alreadyScheduled = actions.some(
-          (action) =>
+          action =>
             action.videoId === video.videoId &&
             action.actionType === 'FETCH_MEDIA' &&
             action.segmentIndex === segment.index

@@ -23,19 +23,30 @@
   },
   "sessions": [
     {
-      "abr": {"name": "current", "config": {"activeBufferTargetSegments": 2}},
+      "abr": { "name": "current", "config": { "activeBufferTargetSegments": 2 } },
       "config": {
-        "sessionId": "ue-0", "ueId": 0, "seed": 17,
-        "scheduling": {"maxConcurrentRequests": 2},
-        "userModel": {"type": "sequence", "swipeTimesS": [3, 7]}
+        "sessionId": "ue-0",
+        "ueId": 0,
+        "seed": 17,
+        "scheduling": { "maxConcurrentRequests": 2 },
+        "userModel": { "type": "sequence", "swipeTimesS": [3, 7] }
       }
     },
     {
-      "abr": {"name": "prefetch", "config": {"activeBufferTargetSegments": 2, "max_preload_segments": 4, "preload_segments_per_video": 2}},
+      "abr": {
+        "name": "prefetch",
+        "config": {
+          "activeBufferTargetSegments": 2,
+          "max_preload_segments": 4,
+          "preload_segments_per_video": 2
+        }
+      },
       "config": {
-        "sessionId": "ue-1", "ueId": 1, "seed": 21,
-        "scheduling": {"maxConcurrentRequests": 3},
-        "userModel": {"type": "seeded", "seed": 99, "watchDurationRangeS": [2, 5]}
+        "sessionId": "ue-1",
+        "ueId": 1,
+        "seed": 21,
+        "scheduling": { "maxConcurrentRequests": 3 },
+        "userModel": { "type": "seeded", "seed": 99, "watchDurationRangeS": [2, 5] }
       }
     }
   ]

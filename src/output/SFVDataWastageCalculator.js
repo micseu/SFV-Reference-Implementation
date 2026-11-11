@@ -45,10 +45,17 @@ function buildSelectedRepresentationMap(playbacks) {
 
 function consumedFraction(request, watchDurationS, selectedRepresentation) {
   const resource = request.resource;
-  if (!selectedRepresentation || selectedRepresentation.representationId !== resource.representationId) {
+  if (
+    !selectedRepresentation ||
+    selectedRepresentation.representationId !== resource.representationId
+  ) {
     return 0;
   }
-  if (!Number.isFinite(resource.startS) || !Number.isFinite(resource.durationS) || resource.durationS <= 0) {
+  if (
+    !Number.isFinite(resource.startS) ||
+    !Number.isFinite(resource.durationS) ||
+    resource.durationS <= 0
+  ) {
     return 0;
   }
   return clamp((watchDurationS - resource.startS) / resource.durationS, 0, 1);
@@ -115,9 +122,7 @@ export function calculateDataWastage({
   terminationReason
 }) {
   const swipedVideos = new Set(
-    userEvents
-      .filter((event) => event.eventType === 'SWIPE')
-      .map((event) => event.fromVideoId)
+    userEvents.filter(event => event.eventType === 'SWIPE').map(event => event.fromVideoId)
   );
   const selectedRepresentations = buildSelectedRepresentationMap(playbacks);
   const representationSuperseded = findRepresentationSupersededRequests({
@@ -128,16 +133,19 @@ export function calculateDataWastage({
   const sessionEnded = terminationReason === 'session_end';
 
   const byVideo = new Map(
-    dataset.videos.map((video) => [video.videoId, {
-      total: 0,
-      reasons: {
-        swipe: 0,
-        representation_superseded: 0,
-        cache_admission_rejected: 0,
-        session_end: 0
-      },
-      unresolvedAtCutoff: 0
-    }])
+    dataset.videos.map(video => [
+      video.videoId,
+      {
+        total: 0,
+        reasons: {
+          swipe: 0,
+          representation_superseded: 0,
+          cache_admission_rejected: 0,
+          session_end: 0
+        },
+        unresolvedAtCutoff: 0
+      }
+    ])
   );
 
   for (const request of requests) {

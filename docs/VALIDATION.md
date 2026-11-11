@@ -21,7 +21,7 @@ separately to obtain full browser session exports.
 
 1. **Trace-conditioned replay**: uses observed browser platform timings as
    inputs, but recalculates rule/throughput/requests. Earlier full B1/B2 exports
-   passed 15/15 and 18/18 configured checks. This is *not* independent prediction.
+   passed 15/15 and 18/18 configured checks. This is _not_ independent prediction.
 2. **Independent playback prediction**: no recorded browser playback timings,
    throughput, quality choices or downloaded resource trace injected. Earlier
    independent results remain `review-required` (B1 12/15, B2 17/18).

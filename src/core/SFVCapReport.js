@@ -8,11 +8,11 @@ const EPS = 1e-8;
 export function countSwipesInWindow(userEvents, timeS, windowS = 1, eps = EPS) {
   if (!Array.isArray(userEvents)) return 0;
   return userEvents.filter(
-    (event) =>
+    event =>
       event?.eventType === 'SWIPE' &&
       Number.isFinite(event.time) &&
       event.time > timeS - windowS &&
-      event.time <= timeS + eps,
+      event.time <= timeS + eps
   ).length;
 }
 
@@ -24,7 +24,7 @@ function playableBufferSeconds(playback) {
   const snap = typeof playback.snapshot === 'function' ? playback.snapshot() : playback;
   const ranges = snap.bufferRanges ?? [];
   const bufferEnd = ranges.length
-    ? Math.max(...ranges.map((range) => range.endS ?? range.end ?? 0))
+    ? Math.max(...ranges.map(range => range.endS ?? range.end ?? 0))
     : 0;
   return Math.max(0, bufferEnd - (snap.positionS ?? positionS));
 }
@@ -48,13 +48,15 @@ function currentVideoId(playback) {
  * @param {{ timeS: number, playback: object, userEvents?: object[], swipeWindowS?: number }} args
  */
 export function buildCapReportFromSession({ timeS, playback, userEvents = [], swipeWindowS = 1 }) {
-  if (!Number.isFinite(timeS) || timeS < 0) throw new TypeError('buildCapReportFromSession: invalid timeS');
-  if (!playback || typeof playback !== 'object') throw new TypeError('buildCapReportFromSession: playback required');
+  if (!Number.isFinite(timeS) || timeS < 0)
+    throw new TypeError('buildCapReportFromSession: invalid timeS');
+  if (!playback || typeof playback !== 'object')
+    throw new TypeError('buildCapReportFromSession: playback required');
   return Object.freeze({
     time_s: timeS,
     is_stalled: stallFlag(playback),
     playable_buffer_s: playableBufferSeconds(playback),
     current_video_id: currentVideoId(playback),
-    swipe_rate_per_s: countSwipesInWindow(userEvents, timeS, swipeWindowS),
+    swipe_rate_per_s: countSwipesInWindow(userEvents, timeS, swipeWindowS)
   });
 }
