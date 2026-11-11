@@ -14,7 +14,7 @@ import { normalizeSchedulingConfig } from '../core/SFVConfig.js';
 import { ACTION, MANIFEST_STATE } from '../core/constants.js';
 import { SFVSessionRecordBuilder } from '../output/SFVSessionRecordBuilder.js';
 import { cspFieldsEqual, normalizeCspFields } from '../core/SFVCspFields.js';
-import { buildCapReportFromSession } from '../core/SFVCapReport.js';
+import { SFVCapReportEmitter, buildCapReportFromSession } from '../core/SFVCapReport.js';
 
 /** One browser feed/UE; B1 and B2 run unmodified against the same rules context as DES. */
 export class SFVBrowserController {
@@ -114,6 +114,7 @@ export class SFVBrowserController {
     this.seekPending = false;
     this.listeners = [];
     this.cspFields = null;
+    this.capEmitter = new SFVCapReportEmitter(this.config.capReport ?? {});
     this.#bindPlaybackEvents();
   }
   time() {
@@ -138,12 +139,25 @@ export class SFVBrowserController {
     return this.cspFields == null ? null : structuredClone(this.cspFields);
   }
 
+  /**
+   * VQEG CAP report snapshot at ``timeS``, built on every call.
+   * @deprecated Use ``drainCapReports``, which only returns a report when one is due.
+   */
   buildCapReport(timeS = this.time()) {
     return buildCapReportFromSession({
       timeS,
       playback: this.playback,
       userEvents: this.userEvents
     });
+  }
+
+  /** Pending VQEG CAP reports (0 or 1) since the last drain; see ``SFVCapReportEmitter``. */
+  drainCapReports(timeS = this.time(), { final = false } = {}) {
+    const report = this.capEmitter.poll(
+      buildCapReportFromSession({ timeS, playback: this.playback, userEvents: this.userEvents }),
+      { force: final }
+    );
+    return report == null ? [] : [report];
   }
 
   #observe(event) {

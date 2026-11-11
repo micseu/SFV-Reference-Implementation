@@ -15,7 +15,7 @@ import { normalizeSchedulingConfig } from '../core/SFVConfig.js';
 import { resolveSessionTiming } from './SFVSessionTiming.js';
 import { resolveUserInteractions, resolveCapacityGenerator } from './generators/SFVGenerators.js';
 import { cspFieldsEqual, normalizeCspFields } from '../core/SFVCspFields.js';
-import { buildCapReportFromSession } from '../core/SFVCapReport.js';
+import { SFVCapReportEmitter, buildCapReportFromSession } from '../core/SFVCapReport.js';
 
 export class SFVSimulationController {
   constructor({ dataset, rule, config = {}, transport = null, requestIdPrefix = 'r' }) {
@@ -122,6 +122,7 @@ export class SFVSimulationController {
     this.sampleStart = null;
     this.lastObservedPlaybackPosition = 0;
     this.cspFields = null;
+    this.capEmitter = new SFVCapReportEmitter(this.config.capReport ?? {});
 
     this.requestManager = new SFVRequestManager({
       catalog: this.catalog,
@@ -302,13 +303,29 @@ export class SFVSimulationController {
     return this.cspFields == null ? null : structuredClone(this.cspFields);
   }
 
-  /** VQEG ``cap_reports`` payload for one UE at ``timeS`` (pilot co-sim: per network step). */
+  /**
+   * VQEG ``cap_reports`` snapshot for one UE at ``timeS``, built on every call.
+   * @deprecated Use ``drainCapReports``, which only returns a report when one is due.
+   */
   buildCapReport(timeS = this.clock.now()) {
     return buildCapReportFromSession({
       timeS,
       playback: this.playback,
       userEvents: this.userEvents
     });
+  }
+
+  /**
+   * Pending VQEG ``cap_reports`` for this UE since the last drain (0 or 1 reports). Event-driven
+   * via ``SFVCapReportEmitter``: stall edges, video switches and buffer threshold crossings, at
+   * most one per second of session time. ``final`` flushes pending state past the rate limit.
+   */
+  drainCapReports(timeS = this.clock.now(), { final = false } = {}) {
+    const report = this.capEmitter.poll(
+      buildCapReportFromSession({ timeS, playback: this.playback, userEvents: this.userEvents }),
+      { force: final }
+    );
+    return report == null ? [] : [report];
   }
 
   stopQueuedRequests(timeS, sessionEnded) {
