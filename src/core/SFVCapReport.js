@@ -1,9 +1,13 @@
 /**
  * VQEG CAP telemetry report (pilot ``CapReport`` / ``cap_reports`` IPC).
- * Co-sim today: one snapshot per collaboration tick; event-driven 1/s is future work.
+ * Reports are event-driven: ``SFVCapReportEmitter`` emits on stall edges, video switches and
+ * buffer threshold crossings, at most once per ``minIntervalS`` of session time per UE.
  */
 
 const EPS = 1e-8;
+
+export const DEFAULT_CAP_BUFFER_DELTA_S = 1.0;
+export const DEFAULT_CAP_MIN_INTERVAL_S = 1.0;
 
 export function countSwipesInWindow(userEvents, timeS, windowS = 1, eps = EPS) {
   if (!Array.isArray(userEvents)) return 0;
@@ -59,4 +63,48 @@ export function buildCapReportFromSession({ timeS, playback, userEvents = [], sw
     current_video_id: currentVideoId(playback),
     swipe_rate_per_s: countSwipesInWindow(userEvents, timeS, swipeWindowS)
   });
+}
+
+/**
+ * Per-UE CAP report gate. Changes are compared with the last emitted report, so a transition
+ * suppressed by the rate limit is emitted (coalesced) at the first poll after the window reopens.
+ */
+export class SFVCapReportEmitter {
+  constructor({
+    bufferDeltaS = DEFAULT_CAP_BUFFER_DELTA_S,
+    minIntervalS = DEFAULT_CAP_MIN_INTERVAL_S
+  } = {}) {
+    if (!Number.isFinite(bufferDeltaS) || bufferDeltaS <= 0) {
+      throw new TypeError('SFVCapReportEmitter: bufferDeltaS must be positive');
+    }
+    if (!Number.isFinite(minIntervalS) || minIntervalS < 0) {
+      throw new TypeError('SFVCapReportEmitter: minIntervalS must be non-negative');
+    }
+    this.bufferDeltaS = bufferDeltaS;
+    this.minIntervalS = minIntervalS;
+    this.lastReport = null;
+  }
+
+  hasTransition(report) {
+    const last = this.lastReport;
+    if (last == null) return true;
+    return (
+      report.is_stalled !== last.is_stalled ||
+      report.current_video_id !== last.current_video_id ||
+      Math.abs(report.playable_buffer_s - last.playable_buffer_s) >= this.bufferDeltaS - EPS
+    );
+  }
+
+  /** Returns the report to emit, or null. ``force`` bypasses the rate limit (final drain). */
+  poll(report, { force = false } = {}) {
+    if (!this.hasTransition(report)) return null;
+    if (
+      !force &&
+      this.lastReport != null &&
+      report.time_s - this.lastReport.time_s < this.minIntervalS - EPS
+    )
+      return null;
+    this.lastReport = report;
+    return report;
+  }
 }
