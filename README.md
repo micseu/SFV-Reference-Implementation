@@ -28,6 +28,7 @@ required for the default simulations.
 - [Architecture](docs/reference/sfv_reference_architecture_summary.md): implementation boundaries and shared execution rules.
 - [Technical plan](docs/reference/sfv_technical_implementation_plan.md): implemented functionality and current work items.
 - [Validation](docs/VALIDATION.md): repeatable scenarios, distinct replay and independent-prediction claims, and cache tests.
+- [Co-simulation](docs/CO_SIMULATION.md): run SFV sessions against an external network simulator over JSON lines.
 
 The included media fixtures and dash.js-derived patch need a separate
 provenance/licensing review before redistribution. Raw browser recordings,
