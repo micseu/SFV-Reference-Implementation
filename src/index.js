@@ -29,6 +29,8 @@ export {
   resolveUserInteractions
 } from './simulation/generators/SFVGenerators.js';
 export { SFVSingleUEQueuedTransport } from './simulation/SFVSingleUEQueuedTransport.js';
+export { SFVExternalTransport } from './cosim/SFVExternalTransport.js';
+export { SFVNetworkStepHarness } from './cosim/SFVNetworkStepHarness.js';
 
 export {
   SFV_EXPERIMENT_SCHEMA_VERSION,
