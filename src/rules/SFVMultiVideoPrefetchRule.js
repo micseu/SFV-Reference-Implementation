@@ -71,7 +71,7 @@ export class SFVMultiVideoPrefetchRule extends SFVCurrentVideoRule {
         continue;
       }
 
-      const representation = this.selectRepresentation(video);
+      const representation = this.selectRepresentation(video, Number.NaN, context);
       if (!representation) {
         continue;
       }
