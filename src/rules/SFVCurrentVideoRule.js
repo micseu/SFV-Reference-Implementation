@@ -27,7 +27,7 @@ export class SFVCurrentVideoRule extends BaseSFVRule {
       return { rule: this.name, reason: 'wait-active-manifest', actions };
     }
 
-    const selectedRepresentation = this.selectRepresentation(video);
+    const selectedRepresentation = this.selectRepresentation(video, Number.NaN, context);
     if (!selectedRepresentation) {
       return { rule: this.name, reason: 'no-video-representation', actions };
     }
@@ -98,9 +98,13 @@ export class SFVCurrentVideoRule extends BaseSFVRule {
     }
 
     const safeKbps = this.estimator.getSafeKbps();
+    const planCapKbps = this.getPlanCapKbps(context);
+    const planSuffix = Number.isFinite(planCapKbps)
+      ? ` planCapKbps=${Math.round(planCapKbps)}`
+      : '';
     return {
       rule: this.name,
-      reason: `active-only safeThroughputKbps=${Math.round(safeKbps || 0)}`,
+      reason: `active-only safeThroughputKbps=${Math.round(safeKbps || 0)}${planSuffix}`,
       actions
     };
   }

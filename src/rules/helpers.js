@@ -44,7 +44,28 @@ export class BaseSFVRule {
     this.estimator.setState(state.estimator);
   }
 
-  selectRepresentation(video, preferredKbps = Number.NaN) {
+  /**
+   * L1 static plan-rate cap in kbps derived from `cspFields.plan_downlink_mbps`,
+   * or NaN when no positive plan rate is available (L0 or absent field).
+   */
+  getPlanCapKbps(context = null) {
+    const planMbps = context?.getCspFields?.()?.plan_downlink_mbps;
+    if (!(Number.isFinite(planMbps) && planMbps > 0)) {
+      return Number.NaN;
+    }
+    const planSafety = Number.isFinite(this.config.planSafetyFactor)
+      ? this.config.planSafetyFactor
+      : (this.estimator.config?.safetyFactor ?? 0.9);
+    return planMbps * 1000 * planSafety;
+  }
+
+  /**
+   * Picks the highest video representation not exceeding the safe throughput.
+   * When `context` carries a CSP plan rate, the safe throughput is additionally
+   * capped at `plan_downlink_mbps * 1000 * safetyFactor` (never raised by it,
+   * except on cold start when `config.usePlanOnColdStart === true`).
+   */
+  selectRepresentation(video, preferredKbps = Number.NaN, context = null) {
     const representations = (video.representations?.video ?? [])
       .slice()
       .sort((a, b) => a.bitrateKbps - b.bitrateKbps);
@@ -53,7 +74,16 @@ export class BaseSFVRule {
       return null;
     }
 
-    const safeKbps = Number.isFinite(preferredKbps) ? preferredKbps : this.estimator.getSafeKbps();
+    const planCapKbps = this.getPlanCapKbps(context);
+    let safeKbps = Number.isFinite(preferredKbps) ? preferredKbps : this.estimator.getSafeKbps();
+
+    if (Number.isFinite(planCapKbps)) {
+      if (Number.isFinite(safeKbps)) {
+        safeKbps = Math.min(safeKbps, planCapKbps);
+      } else if (this.config.usePlanOnColdStart === true) {
+        safeKbps = planCapKbps;
+      }
+    }
 
     if (!Number.isFinite(safeKbps)) {
       return representations[0];
